@@ -1,6 +1,6 @@
 <circuit version="1.1.0-SR2" rev="260312" stepSize="1000000" stepsPS="1000000" NLsteps="100000" reaStep="1000000" animate="0" >
 
-<item itemtype="Ground" CircId="Ground-8" mainComp="false" Show_id="false" Show_Val="false" Pos="188,-360" rotation="0" hflip="1" vflip="1" label="Ground-8" idLabPos="-16,8" labelrot="0" valLabPos="-16,20" valLabRot="0" />
+<item itemtype="Ground" CircId="Ground-8" mainComp="false" Show_id="false" Show_Val="false" Pos="188,-328" rotation="0" hflip="1" vflip="1" label="Ground-8" idLabPos="-16,8" labelrot="0" valLabPos="-16,20" valLabRot="0" />
 
 <item itemtype="Seven Segment" CircId="Seven Segment-55" mainComp="false" Show_id="false" Show_Val="false" Pos="320,-476" rotation="0" hflip="1" vflip="1" label="Seven Segment-55" idLabPos="20,-44" labelrot="0" valLabPos="-16,20" valLabRot="0" Color="Yellow" NumDisplays="1" Vertical_Pins="false" CommonCathode="true" Threshold="2.4 V" MaxCurrent="20 mA" Resistance="1 Ω" />
 
@@ -292,7 +292,7 @@
 
 <item itemtype="Connector" uid="Connector-226" startpinid="Node-104-2" endpinid="Node-103-1" pointList="328,-376,188,-376" />
 
-<item itemtype="Connector" uid="Connector-223" startpinid="Node-103-2" endpinid="Ground-8-Gnd" pointList="188,-376,188,-376" />
+<item itemtype="Connector" uid="Connector-223" startpinid="Node-103-2" endpinid="Ground-8-Gnd" pointList="188,-376,188,-344" />
 
 <item itemtype="Connector" uid="Connector-222" startpinid="Uno-13-GND0" endpinid="Node-103-0" pointList="92,-500,176,-500,176,-376,188,-376" />
 
