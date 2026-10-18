@@ -1,12 +1,12 @@
 
-AVRASM ver. 2.2.8  C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm Sun Oct 18 11:36:22 2026
+AVRASM ver. 2.2.8  C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm Sun Oct 18 17:46:30 2026
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
-C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(80): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
+C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(123): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
-C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(80): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
+C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(123): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
                                  
-                                 ;atualizadooooo
+                                 ;==============================================================================
                                  
                                  ;***** Created: 2011-02-09 12:03 ******* Source: ATmega328P.xml **********
                                  ;*************************************************************************
@@ -988,84 +988,127 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
                                  ; ***** END OF FILE ******************************************************
                                  
                                  ;  SIMULACAO DOS SEMAFOROS DO CRUZAMENTO
-                                 ;  Av. Alvaro Otacilio x R. Prof. Sandoval Arroxelas - Maceio/AL
+                                 ;  Av. Alvaro Otacilio x Av. Prof. Sandoval Arroxelas - Ponta Verde, Maceio/AL
                                  ;
                                  ;  Placa      : Arduino Uno (ATmega328P @ 16 MHz)
                                  ;  Montador   : AVRASM2 (Microchip Studio, projeto "AVR Assembler")
                                  ;  Arquivo    : semaforo.asm
                                  ;
-                                 ;  RESUMO DO FUNCIONAMENTO
-                                 ;  -----------------------
-                                 ;  O cruzamento e modelado como uma maquina de 7 estados. Cada estado define
-                                 ;  a cor de cada um dos 5 sinais (S1, S2, S3, S4 e P) e dura um numero fixo
-                                 ;  de segundos. A tabela de estados fica gravada na memoria flash (ver
-                                 ;  "tabela_estados" no final) e o codigo e totalmente generico: para mudar a
-                                 ;  temporizacao ou as cores basta editar a tabela.
+                                 ;------------------------------------------------------------------------------
+                                 ;  ONDE CADA REQUISITO DO ENUNCIADO E ATENDIDO
+                                 ;  (procure no arquivo pela etiqueta entre colchetes)
                                  ;
-                                 ;  Sao usados dois timers, cada um com a sua interrupcao:
+                                 ;  [REQUISITO 1] "Deve-se utilizar os Timers do AVR para definir os tempos"
+                                 ;       Timer1 (16 bits, modo CTC) gera 1 interrupcao por segundo: e o relogio
+                                 ;       da maquina de estados.  Configuracao em "reset", uso em "isr_timer1".
+                                 ;       Timer0 (8 bits, modo CTC) gera 1 interrupcao a cada 5 ms: e a varredura
+                                 ;       dos displays.  Configuracao em "reset", uso em "isr_timer0".
+                                 ;       Nenhum atraso e feito por laco de software (nada de "delay" contando
+                                 ;       instrucoes): todo tempo vem de hardware.
                                  ;
-                                 ;  * Timer1 (16 bits), modo CTC, uma interrupcao por segundo. A ISR
-                                 ;      1. decrementa o contador de segundos do estado atual;
-                                 ;      2. separa o contador em dezena e unidade (para os displays);
-                                 ;      3. quando o contador chega a zero, avanca para o proximo estado,
-                                 ;         escreve as cores nos pinos dos LEDs e inicia o envio da mensagem
-                                 ;         de status pela USART.
+                                 ;  [REQUISITO 2] "Deve-se utilizar interrupcao ao inves de verificacao de flag"
+                                 ;       O programa tem 3 rotinas de interrupcao (Timer1, Timer0 e USART UDRE)
+                                 ;       e o laco principal e literalmente "rjmp loop", sem nada dentro.
+                                 ;       Nao existe no arquivo nenhum laco do tipo "le o flag e volta se ainda
+                                 ;       nao mudou" (sbic/sbis/sbrs seguido de rjmp para tras).  Ate a saida da
+                                 ;       mensagem inicial pela serial passa pela interrupcao UDRE, usando a
+                                 ;       fila "tx_next".
                                  ;
-                                 ;  * Timer0 (8 bits), modo CTC, uma interrupcao a cada 5 ms. A ISR faz a
-                                 ;    multiplexacao dos dois displays: num tique mostra a dezena no display
-                                 ;    da esquerda, no tique seguinte a unidade no da direita. Cada display e
-                                 ;    atualizado 100 vezes por segundo, rapido demais para o olho perceber.
-                                 ;    Assim os dois displays usam um unico decodificador BCD.
+                                 ;  [REQUISITO 3] "Apresentar o contador de um dos semaforos usando displays de
+                                 ;                 7seg. Pode utilizar o CI BCD."
+                                 ;       Um unico decodificador BCD (CD4511 na protoboard / "BCD to 7S" no
+                                 ;       SimulIDE) recebe 4 bits em PC0..PC3 e aciona os dois displays, que sao
+                                 ;       multiplexados por "isr_timer0".  O valor exibido e "seg", os segundos
+                                 ;       que faltam para o estado atual terminar - o mesmo numero que um
+                                 ;       semaforo com contador mostra na rua.
                                  ;
-                                 ;  A transmissao serial tambem e feita por interrupcao (UDRE): cada vez que
-                                 ;  o registrador de transmissao esvazia, a ISR envia o proximo caractere da
-                                 ;  string ate encontrar o terminador 0. O laco principal fica vazio: todo o
-                                 ;  comportamento acontece nas interrupcoes, como pede o requisito de usar
-                                 ;  interrupcao em vez de verificacao de flag.
+                                 ;  [REQUISITO 4] "Enviar pela serial informacoes de status"
+                                 ;       A cada mudanca de estado, "carrega_estado" agenda uma string no
+                                 ;       formato do enunciado e a ISR "isr_udre" a transmite.  Exemplo:
+                                 ;       "q2 (4s): S1 - Vermelho; S2 - Vermelho; S3 - Amarelo; S4 - Amarelo;
+                                 ;        P - Vermelho".  Strings no fim do arquivo.
                                  ;
-                                 ;  HARDWARE (20 pinos do Uno, todos usados)
-                                 ;  ----------------------------------------
-                                 ;  Serial : D0/D1 (USART0) a 9600 bps, 8N1, via USB -> monitor serial.
+                                 ;  [REQUISITO 5] "Controle feito por Arduino com codigo em Assembly"
+                                 ;       Arquivo inteiro em assembly AVR, sem biblioteca nem codigo em C.
+                                 ;
+                                 ;  [REQUISITO 6] "Os semaforos devem ser implementados com tres leds"
+                                 ;       4 semaforos de veiculos (S1..S4) com vermelho, amarelo e verde cada +
+                                 ;       1 sinal de pedestre (P) com vermelho e verde = 14 LEDs.  Mapa de pinos
+                                 ;       na secao HARDWARE abaixo.
+                                 ;
+                                 ;  [REQUISITO 7] "O valor do contador deve ser implementado com dois displays"
+                                 ;       Dois displays de 7 segmentos (dezena e unidade), ver [REQUISITO 3].
+                                 ;
+                                 ;  [REQUISITO 8] "Codigo assembly muito bem comentado"
+                                 ;       Este cabecalho + um comentario em cada linha do programa.
+                                 ;------------------------------------------------------------------------------
+                                 ;
+                                 ;  COMO O PROGRAMA FUNCIONA, EM TRES PARAGRAFOS
+                                 ;
+                                 ;  1) O cruzamento inteiro e modelado como UMA maquina de 7 estados (q1..q7).
+                                 ;     Um estado nao e "o semaforo S1 esta verde": e a combinacao das cores dos
+                                 ;     cinco sinais ao mesmo tempo, mais a duracao em segundos.  Isso garante
+                                 ;     por construcao que dois fluxos conflitantes nunca ficam verdes juntos,
+                                 ;     porque simplesmente nao existe linha na tabela com essa combinacao.
+                                 ;     A tabela esta no fim do arquivo, em "tabela_estados", gravada na memoria
+                                 ;     flash.  Para mudar a temporizacao basta editar numeros nessa tabela; o
+                                 ;     codigo nao muda.
+                                 ;
+                                 ;  2) A unica "entrada" da maquina e o tique de 1 segundo do Timer1.  A ISR
+                                 ;     desse timer decrementa o contador de segundos; quando ele chega a zero,
+                                 ;     avanca para o proximo estado (voltando a q1 depois de q7), le a nova
+                                 ;     linha da tabela, acende os LEDs correspondentes e manda a mensagem de
+                                 ;     status pela serial.
+                                 ;
+                                 ;  3) Os dois displays dividem um unico decodificador BCD.  Nao da para
+                                 ;     mostrar dois numeros diferentes ao mesmo tempo com um decodificador so,
+                                 ;     entao a ISR do Timer0 alterna entre eles a cada 5 ms: num tique acende
+                                 ;     a dezena, no tique seguinte a unidade.  Cada display pisca 100 vezes por
+                                 ;     segundo, rapido demais para o olho perceber, e os dois parecem acesos.
+                                 ;
+                                 ;------------------------------------------------------------------------------
+                                 ;  HARDWARE (os 20 pinos de I/O do Uno, todos usados)
+                                 ;
+                                 ;  Serial : D0/D1 (USART0) a 9600 bps, 8N1, pelo USB -> monitor serial.
                                  ;
                                  ;  Displays (2 x 7 segmentos de CATODO COMUM, 1 decodificador BCD):
-                                 ;     A0..A3 (PC0..PC3) -> entradas A,B,C,D (S0..S3) do decodificador BCD
+                                 ;     A0..A3 (PC0..PC3) -> entradas A,B,C,D do decodificador BCD
                                  ;     saidas a..g do decodificador -> resistores de 330 ohms -> segmentos
-                                 ;     a..g dos DOIS displays em paralelo
-                                 ;     A5 (PC5) -> 100 ohms -> base do transistor NPN do display das DEZENAS
-                                 ;     A4 (PC4) -> 100 ohms -> base do transistor NPN do display das UNIDADES
-                                 ;     (coletor de cada transistor no catodo comum do seu display, emissor
-                                 ;      no GND; pino em 1 = display aceso)
-                                 ;     No SimulIDE: "BCD to 7S" com Open Drain = No e OE no GND;
-                                 ;     "7 Segment Display" em catodo comum. Na protoboard: CD4511.
+                                 ;        a..g dos DOIS displays, em paralelo
+                                 ;     A5 (PC5) -> 1 kohm -> base do transistor NPN do display das DEZENAS
+                                 ;     A4 (PC4) -> 1 kohm -> base do transistor NPN do display das UNIDADES
+                                 ;        (coletor de cada transistor no catodo comum do seu display,
+                                 ;         emissor no GND; pino em nivel alto = aquele display aceso)
                                  ;
-                                 ;  LEDs (12 pinos, 14 LEDs), cada um com resistor de 220 ohms:
-                                 ;     PORTD                         PORTB
-                                 ;     D2 (PD2) S1 vermelho          D8  (PB0) S3 vermelho
-                                 ;     D3 (PD3) S1 amarelo           D9  (PB1) S3 amarelo E S4 amarelo *
-                                 ;     D4 (PD4) S1 verde             D10 (PB2) S3 verde
-                                 ;     D5 (PD5) S2 vermelho          D11 (PB3) S4 vermelho
-                                 ;     D6 (PD6) S2 amarelo           D12 (PB4) S4 verde
-                                 ;     D7 (PD7) S2 verde             D13 (PB5) P: 1 = vermelho, 0 = verde **
+                                 ;  LEDs (12 pinos para 14 LEDs), cada LED com resistor de 330 ohms:
+                                 ;     PORTD                          PORTB
+                                 ;     D2 (PD2) S1 vermelho           D8  (PB0) S3 vermelho
+                                 ;     D3 (PD3) S1 amarelo            D9  (PB1) S3 amarelo E S4 amarelo  (*)
+                                 ;     D4 (PD4) S1 verde              D10 (PB2) S3 verde
+                                 ;     D5 (PD5) S2 vermelho           D11 (PB3) S4 vermelho
+                                 ;     D6 (PD6) S2 amarelo            D12 (PB4) S4 verde
+                                 ;     D7 (PD7) S2 verde              D13 (PB5) P: 1 = vermelho, 0 = verde (**)
                                  ;
-                                 ;   * S3 e S4 so ficam amarelos ao mesmo tempo (estado q2), entao os dois
-                                 ;     LEDs amarelos podem dividir um pino (um resistor para cada LED).
-                                 ;  ** O pedestre e sempre vermelho OU verde, entao um pino basta:
-                                 ;        D13 -> 220 ohms -> LED vermelho -> GND   (acende com D13 = 1)
-                                 ;        5V  -> 220 ohms -> LED verde    -> D13   (acende com D13 = 0)
-                                 ;     O LED da propria placa no pino 13 acompanha o vermelho do pedestre.
+                                 ;   (*) Dois LEDs num pino so: olhando a tabela de estados, S3 e S4 ficam
+                                 ;       amarelos exatamente no mesmo estado (q2) e em nenhum outro.  Logo um
+                                 ;       pino pode acender os dois, cada um com seu proprio resistor.
                                  ;
-                                 ;  SIGNIFICADO DOS SINAIS (conforme o levantamento de campo)
-                                 ;  --------------------------------------------------------
-                                 ;  S1 = R. Prof. Sandoval Arroxelas entrando na avenida (sinal lateral)
-                                 ;  S2 = avenida, sentido que sobe, faixa de conversao para a Sandoval
-                                 ;       Arroxelas (sinal de baixo, a esquerda)
-                                 ;  S3 = avenida, sentido que sobe, segue em frente (sinal de baixo, a direita)
-                                 ;  S4 = avenida, sentido que desce, segue ou converte (sinal de cima)
-                                 ;  P  = as duas faixas de pedestre sobre a avenida (abrem juntas quando S3 e
-                                 ;       S4 fecham; tratadas como um unico sinal de duas cores)
+                                 ;  (**) Os dois LEDs do pedestre num pino so: P e sempre vermelho OU verde,
+                                 ;       nunca os dois nem nenhum.  Entao:
+                                 ;          pino 13 -> 330 ohms -> LED vermelho -> GND    (acende com pino = 1)
+                                 ;          5 V     -> 330 ohms -> LED verde    -> pino 13 (acende com pino = 0)
+                                 ;       O LED que ja existe na placa no pino 13 acompanha o vermelho.
+                                 ;
+                                 ;  SIGNIFICADO DOS SINAIS (levantamento de campo no cruzamento)
+                                 ;     S1 = Av. Prof. Sandoval Arroxelas entrando na avenida (sinal lateral)
+                                 ;     S2 = avenida, sentido que sobe, faixa de conversao para a Sandoval
+                                 ;     S3 = avenida, sentido que sobe, segue em frente
+                                 ;     S4 = avenida, sentido que desce
+                                 ;     P  = as duas faixas de pedestre sobre a avenida (abrem e fecham juntas,
+                                 ;          por isso sao tratadas como um unico sinal)
                                  ;==============================================================================
                                  
-                                 .include "m328Pdef.inc"
+                                 .include "m328Pdef.inc"     ; nomes dos registradores do ATmega328P (PORTB,
                                  
                                  ;***** Created: 2011-02-09 12:03 ******* Source: ATmega328P.xml **********
                                  ;*************************************************************************
@@ -1109,390 +1152,480 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
                                  #endif  /* _M328PDEF_INC_ */
                                  
                                  ; ***** END OF FILE ******************************************************
+                                                             ; TCCR1B, OCIE1A...) e dos vetores de interrupcao
                                  
-                                 ;------------------------------------------------------------------------------
+                                 ;==============================================================================
                                  ; CONSTANTES
-                                 ;------------------------------------------------------------------------------
-                                 .equ F_CPU        = 16000000          ; clock do Uno
+                                 ;==============================================================================
+                                 .equ F_CPU        = 16000000  ; frequencia do cristal do Uno, em Hz
                                  
-                                 ; Chave de simulacao:
-                                 ;   1 = depuracao no simulador do Microchip Studio (tempos encurtados, senao
-                                 ;       cada "segundo" da maquina leva minutos de relogio para simular)
-                                 ;   0 = versao final, para o SimulIDE e para a protoboard
-                                 ; LEMBRE DE DEIXAR EM 0 ANTES DE GERAR O .HEX FINAL.
+                                 ; ---- Chave de modo de simulacao ---------------------------------------------
+                                 ; 1 = depuracao no simulador do Microchip Studio.  O simulador e centenas de
+                                 ;     vezes mais lento que o chip real; com os tempos normais, cada "segundo"
+                                 ;     da maquina levaria minutos de relogio para simular.
+                                 ; 0 = versao final, para o SimulIDE e para a protoboard.
+                                 ; DEIXAR EM 0 ANTES DE GERAR O .HEX FINAL.
                                  .equ SIMULACAO    = 0
                                  
-                                 .if SIMULACAO
-                                 .else
-                                 .equ BAUD         = 9600              ; velocidade da serial
-                                 .equ UBRR_VAL     = (F_CPU/16/BAUD)-1 ; = 103 para 9600 bps (ver datasheet)
-                                 ; Timer1 em CTC com prescaler 256:
-                                 ;   16.000.000 / 256 = 62.500 contagens por segundo
-                                 ;   OCR1A = 62.500 - 1 = 62.499  ->  uma interrupcao por segundo
+                                 .if SIMULACAO                 ; ---- bloco compilado so quando SIMULACAO = 1 --
+                                 .else                         ; ---- bloco compilado so quando SIMULACAO = 0 --
+                                 .equ BAUD         = 9600      ; velocidade da serial, em bits por segundo
+                                 .equ UBRR_VAL     = (F_CPU/16/BAUD)-1   ; = 103.  Formula do datasheet do
+                                                                         ; ATmega328P para o modo assincrono
+                                                                         ; normal: UBRR = F_CPU/(16*BAUD) - 1
+                                 ; [REQUISITO 1] Conta do Timer1, que gera o segundo:
+                                 ;   prescaler 256  ->  16.000.000 / 256 = 62.500 contagens por segundo
+                                 ;   em modo CTC o timer zera quando chega em OCR1A, ou seja, conta
+                                 ;   OCR1A + 1 vezes; para 62.500 contagens, OCR1A = 62.499.
                                  .equ OCR1A_VAL    = 62499
                                  .endif
                                  
-                                 ; Timer0 em CTC com prescaler 1024 (varredura dos displays):
-                                 ;   16.000.000 / 1024 = 15.625 contagens por segundo
-                                 ;   OCR0A = 78 - 1 = 77  ->  uma interrupcao a cada 78/15625 = 5 ms
+                                 ; [REQUISITO 1] Conta do Timer0, que varre os displays:
+                                 ;   prescaler 1024  ->  16.000.000 / 1024 = 15.625 contagens por segundo
+                                 ;   queremos 5 ms = 1/200 s  ->  15.625 / 200 = 78 contagens
+                                 ;   em CTC conta OCR0A + 1 vezes, logo OCR0A = 77.
                                  .equ OCR0A_VAL    = 77
                                  
-                                 .equ NUM_ESTADOS  = 7                 ; quantidade de linhas da tabela
-                                 .equ TAM_ESTADO   = 4                 ; bytes por linha (dur, byteD, byteB, 0)
+                                 .equ NUM_ESTADOS  = 7         ; quantas linhas tem a tabela de estados
+                                 .equ TAM_ESTADO   = 4         ; bytes por linha (duracao, PORTD, PORTB, livre)
                                  
-                                 ; ---- Bits dos LEDs em PORTD (D2..D7) ----
-                                 .equ S1_VM = (1<<2)
-                                 .equ S1_AM = (1<<3)
-                                 .equ S1_VD = (1<<4)
-                                 .equ S2_VM = (1<<5)
-                                 .equ S2_AM = (1<<6)
-                                 .equ S2_VD = (1<<7)
-                                 .equ MASK_D = 0b11111100              ; bits de PORTD usados pelos LEDs
+                                 ; ---- Bits dos LEDs em PORTD (pinos D2..D7) ----------------------------------
+                                 ; [REQUISITO 6] cada constante e a mascara de 1 bit do LED correspondente
+                                 .equ S1_VM = (1<<2)           ; bit 2 = pino D2 = S1 vermelho
+                                 .equ S1_AM = (1<<3)           ; bit 3 = pino D3 = S1 amarelo
+                                 .equ S1_VD = (1<<4)           ; bit 4 = pino D4 = S1 verde
+                                 .equ S2_VM = (1<<5)           ; bit 5 = pino D5 = S2 vermelho
+                                 .equ S2_AM = (1<<6)           ; bit 6 = pino D6 = S2 amarelo
+                                 .equ S2_VD = (1<<7)           ; bit 7 = pino D7 = S2 verde
+                                 .equ MASK_D = 0b11111100      ; os 6 bits de PORTD usados por LEDs
+                                                               ; (bits 0 e 1 ficam com a USART: RX e TX)
                                  
-                                 ; ---- Bits dos LEDs em PORTB (D8..D13) ----
-                                 .equ S3_VM = (1<<0)
-                                 .equ S3_AM = (1<<1)
-                                 .equ S4_AM = (1<<1)                   ; mesmo pino do S3_AM (ver cabecalho)
-                                 .equ S3_VD = (1<<2)
-                                 .equ S4_VM = (1<<3)
-                                 .equ S4_VD = (1<<4)
-                                 .equ P_VM  = (1<<5)                   ; D13 = 1 -> LED vermelho do pedestre
-                                 .equ P_VD  = 0                        ; D13 = 0 -> LED verde do pedestre
-                                 .equ MASK_B = 0b00111111              ; bits de PORTB usados pelos LEDs
+                                 ; ---- Bits dos LEDs em PORTB (pinos D8..D13) ---------------------------------
+                                 .equ S3_VM = (1<<0)           ; bit 0 = pino D8  = S3 vermelho
+                                 .equ S3_AM = (1<<1)           ; bit 1 = pino D9  = S3 amarelo
+                                 .equ S4_AM = (1<<1)           ; MESMO bit do S3_AM: os dois amarelos dividem
+                                                               ; o pino D9 (ver nota (*) no cabecalho)
+                                 .equ S3_VD = (1<<2)           ; bit 2 = pino D10 = S3 verde
+                                 .equ S4_VM = (1<<3)           ; bit 3 = pino D11 = S4 vermelho
+                                 .equ S4_VD = (1<<4)           ; bit 4 = pino D12 = S4 verde
+                                 .equ P_VM  = (1<<5)           ; bit 5 em 1  -> pino D13 alto  -> P vermelho
+                                 .equ P_VD  = 0                ; bit 5 em 0  -> pino D13 baixo -> P verde
+                                                               ; (vale 0 de proposito: somar 0 na tabela nao
+                                                               ;  liga bit nenhum, e o pino fica em nivel baixo)
+                                 .equ MASK_B = 0b00111111      ; os 6 bits de PORTB usados por LEDs
+                                                               ; (bits 6 e 7 sao os pinos do cristal)
                                  
-                                 ; ---- Pinos de selecao dos displays em PORTC ----
-                                 .equ SEL_DEZ = (1<<PC5)               ; A5: liga o display das dezenas
-                                 .equ SEL_UNI = (1<<PC4)               ; A4: liga o display das unidades
-                                 
-                                 ;------------------------------------------------------------------------------
-                                 ; REGISTRADORES COM NOME
-                                 ;------------------------------------------------------------------------------
-                                 .def tmp    = r16   ; temporario de uso geral
-                                 .def tmp2   = r17   ; segundo temporario
-                                 .def estado = r18   ; indice do estado atual (0..NUM_ESTADOS-1)
-                                 .def seg    = r19   ; segundos restantes no estado atual
-                                 .def ledsD  = r20   ; bits dos LEDs para PORTD
-                                 .def ledsB  = r21   ; bits dos LEDs para PORTB
-                                 .def zero   = r22   ; registrador sempre com valor 0 (usado em adc)
-                                 .def dez    = r23   ; digito das dezenas (0..9) para o display
-                                 .def uni    = r24   ; digito das unidades (0..9) para o display
-                                 .def mux    = r25   ; qual display esta aceso: 0 = dezenas, 1 = unidades
-                                 
-                                 ;------------------------------------------------------------------------------
-                                 ; VARIAVEIS NA SRAM
-                                 ;------------------------------------------------------------------------------
-                                 .dseg
-000100                           tx_ptr: .byte 2     ; ponteiro (endereco em flash) do proximo caractere a enviar
-                                 
-                                 ;------------------------------------------------------------------------------
-                                 ; VETORES DE INTERRUPCAO
-                                 ;------------------------------------------------------------------------------
-                                 .cseg
-                                 .org 0x0000
-000000 c033                          rjmp reset                  ; vetor de reset
-                                 
-                                 .org OC1Aaddr
-000016 c055                          rjmp isr_timer1             ; Timer1 Compare Match A -> a cada 1 s
-                                 
-                                 .org OC0Aaddr
-00001c c064                          rjmp isr_timer0             ; Timer0 Compare Match A -> a cada 5 ms
-                                 
-                                 .org UDREaddr
-000026 c06c                          rjmp isr_udre               ; USART Data Register Empty -> proximo char
-                                 
-                                 .org INT_VECTORS_SIZE           ; o codigo comeca depois da tabela de vetores
+                                 ; ---- Pinos que escolhem qual display esta aceso -----------------------------
+                                 .equ SEL_DEZ = (1<<PC5)       ; A5 em nivel alto -> liga o display das dezenas
+                                 .equ SEL_UNI = (1<<PC4)       ; A4 em nivel alto -> liga o das unidades
                                  
                                  ;==============================================================================
-                                 ; RESET / INICIALIZACAO
+                                 ; REGISTRADORES COM NOME
+                                 ; O ".def" so da um apelido ao registrador; nao gera instrucao nenhuma.
+                                 ;==============================================================================
+                                 .def tmp    = r16   ; temporario de uso geral (r16..r31 aceitam "ldi")
+                                 .def tmp2   = r17   ; segundo temporario, quando um nao basta
+                                 .def estado = r18   ; indice do estado atual na tabela (0 = q1 ... 6 = q7)
+                                 .def seg    = r19   ; segundos que faltam para o estado atual terminar
+                                 .def ledsD  = r20   ; copia dos bits de LED que vao para PORTD
+                                 .def ledsB  = r21   ; copia dos bits de LED que vao para PORTB
+                                 .def zero   = r22   ; registrador mantido sempre em 0 (o AVR nao tem um fixo)
+                                 .def dez    = r23   ; digito das dezenas do contador (0..9)
+                                 .def uni    = r24   ; digito das unidades do contador (0..9)
+                                 .def mux    = r25   ; qual display foi aceso por ultimo: 0 = dezenas, 1 = unid.
+                                 
+                                 ;==============================================================================
+                                 ; VARIAVEIS NA MEMORIA RAM
+                                 ;==============================================================================
+                                 .dseg                         ; a partir daqui, enderecos na SRAM
+000100                           tx_ptr:  .byte 2              ; endereco (na flash) do proximo caractere a
+                                                               ; enviar pela serial.  2 bytes = ponteiro de
+                                                               ; 16 bits
+000102                           tx_next: .byte 2              ; endereco da PROXIMA string da fila; 0 = fila
+                                                               ; vazia.  Ver "agenda_string"
+                                 
+                                 ;==============================================================================
+                                 ; TABELA DE VETORES DE INTERRUPCAO
+                                 ; Quando uma interrupcao ocorre, o processador salta automaticamente para um
+                                 ; endereco fixo da flash, diferente para cada fonte.  Colocamos em cada um
+                                 ; desses enderecos um salto para a nossa rotina.
+                                 ; [REQUISITO 2] e aqui que as interrupcoes sao amarradas as rotinas
+                                 ;==============================================================================
+                                 .cseg                         ; a partir daqui, enderecos na flash (programa)
+                                 
+                                 .org 0x0000                   ; endereco 0: para onde o chip vai ao ligar
+000000 c033                          rjmp reset                ; desvia para a inicializacao
+                                 
+                                 .org OC1Aaddr                 ; vetor "Timer1 Compare Match A"
+000016 c059                          rjmp isr_timer1           ; -> nossa rotina do tique de 1 segundo
+                                 
+                                 .org OC0Aaddr                 ; vetor "Timer0 Compare Match A"
+00001c c068                          rjmp isr_timer0           ; -> nossa rotina da varredura dos displays
+                                 
+                                 .org UDREaddr                 ; vetor "USART Data Register Empty"
+000026 c070                          rjmp isr_udre             ; -> nossa rotina que envia o proximo caractere
+                                 
+                                 .org INT_VECTORS_SIZE         ; pula o resto da tabela de vetores; o programa
+                                                               ; propriamente dito comeca depois dela
+                                 
+                                 ;==============================================================================
+                                 ; RESET - roda uma unica vez, ao ligar ou apertar reset
                                  ;==============================================================================
                                  reset:
-                                     ; ---- pilha ----------------------------------------------------------
-000034 e008                          ldi  tmp, high(RAMEND)
-000035 bf0e                          out  SPH, tmp
-000036 ef0f                          ldi  tmp, low(RAMEND)
-000037 bf0d                          out  SPL, tmp
+                                     ; ---- pilha ---------------------------------------------------------
+                                     ; A pilha guarda o endereco de retorno dos "rcall" e o que as ISRs
+                                     ; empilham.  Ela cresce de cima para baixo, entao comeca no fim da RAM.
+000034 e008                          ldi  tmp, high(RAMEND)    ; byte alto do ultimo endereco da RAM
+000035 bf0e                          out  SPH, tmp             ; ...para a parte alta do ponteiro de pilha
+000036 ef0f                          ldi  tmp, low(RAMEND)     ; byte baixo
+000037 bf0d                          out  SPL, tmp             ; ...para a parte baixa
                                  
-000038 2766                          clr  zero                   ; registrador zero = 0
-000039 2799                          clr  mux                    ; comeca mostrando as dezenas
+000038 2766                          clr  zero                 ; zera o registrador que servira de constante 0
+000039 2799                          clr  mux                  ; comeca a varredura pelas dezenas
                                  
-                                     ; ---- portas ---------------------------------------------------------
-00003a ef0c                          ldi  tmp, MASK_D            ; PD2..PD7 -> LEDs (PD0/PD1 ficam com a USART)
-00003b b90a                          out  DDRD, tmp
-00003c e30f                          ldi  tmp, MASK_B            ; PB0..PB5 -> LEDs
-00003d b904                          out  DDRB, tmp
-00003e e30f                          ldi  tmp, 0x3F              ; PC0..PC3 -> BCD, PC4/PC5 -> selecao display
-00003f b907                          out  DDRC, tmp
-000040 b968                          out  PORTC, zero            ; displays comecam apagados
+                                     ; ---- direcao dos pinos (DDR = 1 significa saida) --------------------
+00003a ef0c                          ldi  tmp, MASK_D          ; 0b11111100
+00003b b90a                          out  DDRD, tmp            ; PD2..PD7 viram saidas (LEDs); PD0/PD1 ficam
+                                                               ; como estao, para a USART usar
+00003c e30f                          ldi  tmp, MASK_B          ; 0b00111111
+00003d b904                          out  DDRB, tmp            ; PB0..PB5 viram saidas (LEDs)
+00003e e30f                          ldi  tmp, 0x3F            ; 0b00111111
+00003f b907                          out  DDRC, tmp            ; PC0..PC3 saidas (BCD) e PC4/PC5 saidas
+                                                               ; (selecao dos displays)
+000040 b968                          out  PORTC, zero          ; comeca com os dois displays apagados e o BCD
+                                                               ; em 0
                                  
-                                     ; ---- USART0 (9600 bps, 8 bits, sem paridade, 1 stop) ----------------
-000041 e000                          ldi  tmp, high(UBRR_VAL)
-000042 9300 00c5                     sts  UBRR0H, tmp
-000044 e607                          ldi  tmp, low(UBRR_VAL)
-000045 9300 00c4                     sts  UBRR0L, tmp
-000047 e008                          ldi  tmp, (1<<TXEN0)        ; habilita apenas o transmissor
-000048 9300 00c1                     sts  UCSR0B, tmp
-00004a e006                          ldi  tmp, (1<<UCSZ01)|(1<<UCSZ00)   ; 8 bits de dados
-00004b 9300 00c2                     sts  UCSR0C, tmp
+                                     ; ---- USART0: 9600 bps, 8 bits de dados, sem paridade, 1 stop --------
+                                     ; [REQUISITO 4] configuracao da serial que levara o status
+000041 e000                          ldi  tmp, high(UBRR_VAL)  ; byte alto do divisor de velocidade
+000042 9300 00c5                     sts  UBRR0H, tmp          ; (UBRR0H/L ficam fora do alcance de "out",
+000044 e607                          ldi  tmp, low(UBRR_VAL)   ;  por isso "sts", que aceita endereco de 16 bits)
+000045 9300 00c4                     sts  UBRR0L, tmp          ; grava o byte baixo do divisor
+000047 e008                          ldi  tmp, (1<<TXEN0)      ; TXEN0 = habilita o transmissor
+000048 9300 00c1                     sts  UCSR0B, tmp          ; (o receptor nao e usado: o projeto so envia)
+00004a e006                          ldi  tmp, (1<<UCSZ01)|(1<<UCSZ00)  ; UCSZ01:UCSZ00 = 11 -> 8 bits por quadro
+00004b 9300 00c2                     sts  UCSR0C, tmp          ; grava o formato do quadro
                                  
-                                     ; ---- mensagem de abertura (enviada por polling, antes das interrupcoes)
-00004d e0e0                          ldi  ZL, low(str_banner*2)
-00004e e0f2                          ldi  ZH, high(str_banner*2)
-00004f d090                          rcall envia_string_polling
+                                     ; ---- mensagem de abertura -------------------------------------------
+                                     ; [REQUISITO 2] Mesmo o banner inicial sai por interrupcao, nao por
+                                     ; espera de flag.  Como as interrupcoes ainda estao desligadas aqui, ele
+                                     ; so comeca a ser transmitido no "sei" la embaixo; a linha de q1,
+                                     ; agendada logo em seguida, fica esperando a vez em "tx_next".
+00004d 9360 0102                     sts  tx_next,   zero      ; fila comeca vazia (byte baixo)
+00004f 9360 0103                     sts  tx_next+1, zero      ; ...e byte alto
+000051 e204                          ldi  tmp,  low(str_banner*2)   ; endereco do banner na flash.  O "*2" e
+000052 e012                          ldi  tmp2, high(str_banner*2)  ; porque rotulos da flash sao contados em
+                                                                    ; palavras de 16 bits, e "lpm" le bytes
+000053 d086                          rcall agenda_string       ; entrega a string a serial
                                  
-                                     ; ---- estado inicial -------------------------------------------------
-000050 2722                          clr  estado                 ; comeca no estado q1 (indice 0)
-000051 d05f                          rcall carrega_estado        ; le a tabela, acende LEDs, agenda serial
-000052 d084                          rcall separa_digitos        ; prepara dezena/unidade do primeiro estado
+                                     ; ---- estado inicial --------------------------------------------------
+000054 2722                          clr  estado               ; indice 0 = estado q1
+000055 d06f                          rcall carrega_estado      ; le a linha q1: tempo, LEDs e mensagem
+000056 d09d                          rcall separa_digitos      ; converte os segundos em dezena e unidade
                                  
-                                     ; ---- Timer0: CTC, prescaler 1024, interrupcao a cada 5 ms -----------
-                                     ; (varredura dos displays)
-000053 e002                          ldi  tmp, (1<<WGM01)        ; modo CTC (TOP = OCR0A)
-000054 bd04                          out  TCCR0A, tmp
-000055 e40d                          ldi  tmp, OCR0A_VAL
-000056 bd07                          out  OCR0A, tmp
-000057 e005                          ldi  tmp, (1<<CS02)|(1<<CS00)       ; prescaler 1024, liga o timer
-000058 bd05                          out  TCCR0B, tmp
-000059 e002                          ldi  tmp, (1<<OCIE0A)       ; habilita a interrupcao de compare A
-00005a 9300 006e                     sts  TIMSK0, tmp
+                                     ; ---- Timer0: varredura dos displays, 1 interrupcao a cada 5 ms -------
+                                     ; [REQUISITO 1] [REQUISITO 3]
+000057 e002                          ldi  tmp, (1<<WGM01)      ; WGM01 = modo CTC: o timer conta ate OCR0A e
+000058 bd04                          out  TCCR0A, tmp          ; volta a zero sozinho
+000059 e40d                          ldi  tmp, OCR0A_VAL       ; 77
+00005a bd07                          out  OCR0A, tmp           ; valor de comparacao (o "topo" da contagem)
+00005b e005                          ldi  tmp, (1<<CS02)|(1<<CS00)   ; CS02:CS00 = 101 -> prescaler 1024.
+00005c bd05                          out  TCCR0B, tmp          ; escrever os bits CS liga o timer
+00005d e002                          ldi  tmp, (1<<OCIE0A)     ; OCIE0A = gera interrupcao quando TCNT0 = OCR0A
+00005e 9300 006e                     sts  TIMSK0, tmp          ; a partir daqui o Timer0 interrompe a cada 5 ms
                                  
-                                     ; ---- Timer1: CTC, prescaler 256, interrupcao a cada 1 s -------------
-                                     ; (relogio da maquina de estados)
-00005c 9360 0080                     sts  TCCR1A, zero           ; modo normal de saida (sem PWM)
-                                     ; Escrita de 16 bits: sempre o byte alto primeiro
-00005e ef04                          ldi  tmp, high(OCR1A_VAL)
-00005f 9300 0089                     sts  OCR1AH, tmp
-000061 e203                          ldi  tmp, low(OCR1A_VAL)
-000062 9300 0088                     sts  OCR1AL, tmp
-000064 e00c                          ldi  tmp, (1<<WGM12)|(1<<CS12)      ; WGM12 = CTC; CS12 = prescaler 256
-000065 9300 0081                     sts  TCCR1B, tmp
-000067 e002                          ldi  tmp, (1<<OCIE1A)       ; habilita a interrupcao de compare A
-000068 9300 006f                     sts  TIMSK1, tmp
+                                     ; ---- Timer1: relogio da maquina, 1 interrupcao por segundo -----------
+                                     ; [REQUISITO 1]
+000060 9360 0080                     sts  TCCR1A, zero         ; nenhuma saida PWM nos pinos; modo normal
+                                     ; OCR1A tem 16 bits e e escrito em dois acessos.  O hardware exige o byte
+                                     ; ALTO primeiro: ele fica num registrador temporario e so e gravado junto
+                                     ; com o baixo, para o timer nunca ver meio valor.
+000062 ef04                          ldi  tmp, high(OCR1A_VAL) ; carrega o byte alto de 62499
+000063 9300 0089                     sts  OCR1AH, tmp          ; byte alto primeiro
+000065 e203                          ldi  tmp, low(OCR1A_VAL)  ; carrega o byte baixo
+000066 9300 0088                     sts  OCR1AL, tmp          ; byte baixo depois: agora os 16 bits valem
+000068 e00c                          ldi  tmp, (1<<WGM12)|(1<<CS12)  ; WGM12 = CTC com topo em OCR1A;
+000069 9300 0081                     sts  TCCR1B, tmp          ; CS12 = 100 -> prescaler 256 e liga o timer
+00006b e002                          ldi  tmp, (1<<OCIE1A)     ; habilita a interrupcao de comparacao A
+00006c 9300 006f                     sts  TIMSK1, tmp          ; a partir daqui o Timer1 interrompe a cada 1 s
                                  
-00006a 9478                          sei                         ; habilita interrupcoes globais
+00006e 9478                          sei                       ; [REQUISITO 2] libera as interrupcoes globais.
+                                                               ; A partir daqui o programa passa a ser movido
+                                                               ; so por elas
                                  
                                  ;------------------------------------------------------------------------------
                                  ; LACO PRINCIPAL
-                                 ; Nao ha nada para fazer aqui: timers, LEDs, displays e serial sao todos
-                                 ; tratados nas rotinas de interrupcao.
+                                 ; [REQUISITO 2] Proposital e literalmente vazio: nao ha nada para verificar.
+                                 ; Tudo (tempo, LEDs, displays, serial) acontece nas tres rotinas de
+                                 ; interrupcao.  Esta e a prova mais direta de que nao se usa polling.
                                  ;------------------------------------------------------------------------------
                                  loop:
-00006b cfff                          rjmp loop
+00006f cfff                          rjmp loop                 ; fica girando aqui ate uma interrupcao ocorrer
                                  
                                  ;==============================================================================
-                                 ; ISR DO TIMER1 - executada uma vez por segundo
+                                 ; isr_timer1 - INTERRUPCAO DO TIMER1, uma vez por segundo
+                                 ; [REQUISITO 1] [REQUISITO 2]
+                                 ; Faz o tempo passar: desconta um segundo, atualiza os digitos do contador e,
+                                 ; quando o tempo do estado acaba, avanca a maquina de estados.
                                  ;==============================================================================
                                  isr_timer1:
-                                     ; salva os registradores que a rotina usa (e o SREG)
-00006c 930f                          push tmp
-00006d b70f                          in   tmp, SREG
-00006e 930f                          push tmp
-00006f 931f                          push tmp2
-000070 93ef                          push ZL
-000071 93ff                          push ZH
+                                     ; Uma ISR pode interromper o programa em qualquer ponto, entao ela tem de
+                                     ; devolver todos os registradores que usar exatamente como estavam.
+000070 930f                          push tmp                  ; salva tmp
+000071 b70f                          in   tmp, SREG            ; le o registrador de status (flags Z, C, N...)
+000072 930f                          push tmp                  ; salva o SREG tambem: um "dec" aqui dentro
+                                                               ; mudaria o flag Z que o programa interrompido
+                                                               ; talvez fosse testar
+000073 931f                          push tmp2                 ; salva tmp2
+000074 93ef                          push ZL                   ; salva o ponteiro Z (usado por carrega_estado)
+000075 93ff                          push ZH                   ; ...nas suas duas metades
                                  
-000072 953a                          dec  seg                    ; passou 1 segundo
-000073 f429                          brne t1_atualiza            ; ainda ha tempo: so atualiza os digitos
+000076 953a                          dec  seg                  ; passou 1 segundo: um a menos no estado atual
+000077 f429                          brne t1_atualiza          ; se nao chegou a zero, so atualiza o display
                                  
-                                     ; ---- contador chegou a zero: proximo estado -------------------------
-000074 9523                          inc  estado
-000075 3027                          cpi  estado, NUM_ESTADOS
-000076 f008                          brlo t1_carrega             ; estado < NUM_ESTADOS -> ok
-000077 2722                          clr  estado                 ; passou do ultimo -> volta ao q1
+                                     ; ---- o tempo do estado acabou: proximo estado ------------------------
+000078 9523                          inc  estado               ; avanca o indice
+000079 3027                          cpi  estado, NUM_ESTADOS  ; passou do ultimo estado (q7)?
+00007a f008                          brlo t1_carrega           ; nao: segue com o indice novo
+00007b 2722                          clr  estado               ; sim: o ciclo reinicia em q1
                                  t1_carrega:
-000078 d038                          rcall carrega_estado        ; carrega seg/LEDs e dispara a serial
+00007c d048                          rcall carrega_estado      ; le a nova linha: tempo, LEDs e mensagem serial
                                  
                                  t1_atualiza:
-000079 d05d                          rcall separa_digitos        ; dez/uni = segundos restantes
+00007d d076                          rcall separa_digitos      ; dez/uni passam a valer o novo "seg"
                                  
-                                     ; restaura os registradores
-00007a 91ff                          pop  ZH
-00007b 91ef                          pop  ZL
-00007c 911f                          pop  tmp2
-00007d 910f                          pop  tmp
-00007e bf0f                          out  SREG, tmp
-00007f 910f                          pop  tmp
-000080 9518                          reti
+00007e 91ff                          pop  ZH                   ; devolve os registradores na ordem inversa
+00007f 91ef                          pop  ZL                   ; da que foram empilhados
+000080 911f                          pop  tmp2                 ; segundo temporario
+000081 910f                          pop  tmp                  ; este e o SREG salvo la em cima
+000082 bf0f                          out  SREG, tmp            ; restaura os flags
+000083 910f                          pop  tmp                  ; e finalmente o tmp original
+000084 9518                          reti                      ; "return from interrupt": volta e reabilita
+                                                               ; as interrupcoes
                                  
                                  ;==============================================================================
-                                 ; ISR DO TIMER0 - executada a cada 5 ms (varredura dos displays)
-                                 ; Alterna entre os dois displays. Em cada tique escreve em PORTC, numa unica
-                                 ; operacao, o digito (bits 0..3, que vao ao decodificador BCD) junto com o
-                                 ; bit de selecao do display correspondente (bit 4 ou 5). Como a escrita e
-                                 ; de um byte so, nunca ha um instante em que o digito novo aparece no
-                                 ; display errado.
+                                 ; isr_timer0 - INTERRUPCAO DO TIMER0, a cada 5 ms
+                                 ; [REQUISITO 1] [REQUISITO 3] [REQUISITO 7]
+                                 ; Multiplexacao: com um unico decodificador BCD para dois displays, so da para
+                                 ; mostrar um digito de cada vez.  Esta rotina alterna entre eles tao depressa
+                                 ; que os dois parecem acesos ao mesmo tempo (100 atualizacoes por segundo em
+                                 ; cada um).
+                                 ;
+                                 ; Detalhe importante: o digito (bits 0..3) e o bit que liga o display (4 ou 5)
+                                 ; sao escritos em PORTC numa UNICA instrucao "out".  Se fossem duas escritas,
+                                 ; existiria um instante em que o digito novo estaria no display velho, e
+                                 ; apareceria um numero fantasma.
                                  ;==============================================================================
                                  isr_timer0:
-000081 930f                          push tmp
-000082 b70f                          in   tmp, SREG
-000083 930f                          push tmp
+000085 930f                          push tmp                  ; salva tmp
+000086 b70f                          in   tmp, SREG            ; le os flags
+000087 930f                          push tmp                  ; e salva tambem
                                  
-000084 2399                          tst  mux
-000085 f429                          brne t0_unidades
+000088 2399                          tst  mux                  ; mux vale 0 ou 1?
+000089 f429                          brne t0_unidades          ; se for 1, e a vez das unidades
                                  
-                                     ; ---- tique par: dezenas ---------------------------------------------
-000086 2f07                          mov  tmp, dez
-000087 6200                          ori  tmp, SEL_DEZ           ; digito + liga transistor das dezenas
-000088 b908                          out  PORTC, tmp
-000089 e091                          ldi  mux, 1                 ; proximo tique: unidades
-00008a c004                          rjmp t0_sai
+                                     ; ---- vez das dezenas -------------------------------------------------
+00008a 2f07                          mov  tmp, dez             ; tmp = digito das dezenas (0..9, cabe em 4 bits)
+00008b 6200                          ori  tmp, SEL_DEZ         ; acrescenta o bit que liga o display da dezena
+00008c b908                          out  PORTC, tmp           ; escrita unica: BCD + selecao
+                                                               ; (o display das unidades apaga, pois PC4 = 0)
+00008d e091                          ldi  mux, 1               ; marca que o proximo tique e das unidades
+00008e c004                          rjmp t0_sai               ; pula o trecho das unidades
                                  
                                  t0_unidades:
-                                     ; ---- tique impar: unidades ------------------------------------------
-00008b 2f08                          mov  tmp, uni
-00008c 6100                          ori  tmp, SEL_UNI           ; digito + liga transistor das unidades
-00008d b908                          out  PORTC, tmp
-00008e 2799                          clr  mux                    ; proximo tique: dezenas
+                                     ; ---- vez das unidades ------------------------------------------------
+00008f 2f08                          mov  tmp, uni             ; tmp = digito das unidades
+000090 6100                          ori  tmp, SEL_UNI         ; acrescenta o bit que liga o display da unidade
+000091 b908                          out  PORTC, tmp           ; escrita unica: BCD + selecao
+000092 2799                          clr  mux                  ; proximo tique volta a ser das dezenas
                                  
                                  t0_sai:
-00008f 910f                          pop  tmp
-000090 bf0f                          out  SREG, tmp
-000091 910f                          pop  tmp
-000092 9518                          reti
+000093 910f                          pop  tmp                  ; recupera o SREG salvo
+000094 bf0f                          out  SREG, tmp            ; restaura os flags
+000095 910f                          pop  tmp                  ; restaura tmp
+000096 9518                          reti                      ; volta
                                  
                                  ;==============================================================================
-                                 ; ISR DA USART (UDRE) - registrador de transmissao vazio
-                                 ; Envia o proximo caractere apontado por tx_ptr. Quando encontra o 0 final,
-                                 ; desabilita a propria interrupcao e para.
+                                 ; isr_udre - INTERRUPCAO DA USART, "registrador de transmissao vazio"
+                                 ; [REQUISITO 2] [REQUISITO 4]
+                                 ; O hardware chama esta rotina sempre que esta pronto para receber mais um
+                                 ; caractere.  Ela envia o proximo byte da string e volta; assim a mensagem
+                                 ; inteira sai sem que o programa principal espere por nada.
                                  ;==============================================================================
                                  isr_udre:
-000093 930f                          push tmp
-000094 b70f                          in   tmp, SREG
-000095 930f                          push tmp
-000096 93ef                          push ZL
-000097 93ff                          push ZH
+000097 930f                          push tmp                  ; salva tmp
+000098 b70f                          in   tmp, SREG            ; le os flags
+000099 930f                          push tmp                  ; e salva o SREG tambem
+00009a 93ef                          push ZL                   ; salva o ponteiro Z, que esta rotina usa
+00009b 93ff                          push ZH                   ; ...nas suas duas metades
                                  
-000098 91e0 0100                     lds  ZL, tx_ptr             ; recupera o ponteiro da string
-00009a 91f0 0101                     lds  ZH, tx_ptr+1
-00009c 9105                          lpm  tmp, Z+                ; le o caractere e avanca o ponteiro
-00009d 2300                          tst  tmp
-00009e f039                          breq udre_fim               ; 0 = fim da string
+00009c 91e0 0100                     lds  ZL, tx_ptr           ; Z = endereco do proximo caractere
+00009e 91f0 0101                     lds  ZH, tx_ptr+1         ; ...byte alto do ponteiro
+0000a0 9105                          lpm  tmp, Z+              ; le o caractere da flash e ja avanca Z
+0000a1 2300                          tst  tmp                  ; o caractere e 0?
+0000a2 f039                          breq udre_fim             ; 0 marca o fim da string
                                  
-00009f 9300 00c6                     sts  UDR0, tmp              ; envia o caractere
-0000a1 93e0 0100                     sts  tx_ptr, ZL             ; guarda o ponteiro avancado
-0000a3 93f0 0101                     sts  tx_ptr+1, ZH
-0000a5 c005                          rjmp udre_sai
+0000a3 9300 00c6                     sts  UDR0, tmp            ; escreve no registrador de dados: o hardware
+                                                               ; transmite esse byte bit a bit
+0000a5 93e0 0100                     sts  tx_ptr,   ZL         ; guarda o ponteiro ja avancado para a proxima
+0000a7 93f0 0101                     sts  tx_ptr+1, ZH         ; chamada desta ISR
+0000a9 c015                          rjmp udre_sai             ; termina por aqui
                                  
                                  udre_fim:
-0000a6 9100 00c1                     lds  tmp, UCSR0B
-0000a8 7d0f                          cbr  tmp, (1<<UDRIE0)       ; desliga a interrupcao UDRE
-0000a9 9300 00c1                     sts  UCSR0B, tmp
+                                     ; A string acabou.  Existe outra esperando na fila?
+0000aa 91e0 0102                     lds  ZL, tx_next          ; le o endereco guardado na fila
+0000ac 91f0 0103                     lds  ZH, tx_next+1        ; ...byte alto
+0000ae 2f0e                          mov  tmp, ZL              ; para testar se os 16 bits sao zero,
+0000af 2b0f                          or   tmp, ZH              ; basta ver se o OU dos dois bytes e zero
+0000b0 f049                          breq udre_vazio           ; zero = fila vazia, nada mais a enviar
+                                 
+0000b1 93e0 0100                     sts  tx_ptr,   ZL         ; ha outra: ela passa a ser a string atual
+0000b3 93f0 0101                     sts  tx_ptr+1, ZH         ; ...byte alto
+0000b5 9360 0102                     sts  tx_next,   zero      ; e a fila fica vazia de novo
+0000b7 9360 0103                     sts  tx_next+1, zero      ; ...byte alto
+0000b9 c005                          rjmp udre_sai             ; UDRIE0 continua ligada, entao a proxima
+                                                               ; interrupcao ja envia o 1o caractere dela
+                                 
+                                 udre_vazio:
+0000ba 9100 00c1                     lds  tmp, UCSR0B          ; nada mais a enviar:
+0000bc 7d0f                          cbr  tmp, (1<<UDRIE0)     ; desliga a interrupcao UDRE, senao ela ficaria
+0000bd 9300 00c1                     sts  UCSR0B, tmp          ; disparando sem parar (o registrador esta vazio
+                                                               ; o tempo todo)
                                  
                                  udre_sai:
-0000ab 91ff                          pop  ZH
-0000ac 91ef                          pop  ZL
-0000ad 910f                          pop  tmp
-0000ae bf0f                          out  SREG, tmp
-0000af 910f                          pop  tmp
-0000b0 9518                          reti
+0000bf 91ff                          pop  ZH                   ; restaura tudo na ordem inversa
+0000c0 91ef                          pop  ZL                   ; ponteiro Z
+0000c1 910f                          pop  tmp                  ; SREG salvo
+0000c2 bf0f                          out  SREG, tmp            ; restaura os flags
+0000c3 910f                          pop  tmp                  ; tmp original
+0000c4 9518                          reti                      ; volta ao ponto interrompido
                                  
                                  ;==============================================================================
                                  ; carrega_estado
-                                 ; Le a linha da tabela correspondente a "estado", carrega os segundos,
-                                 ; escreve as cores nos pinos dos LEDs e inicia o envio da mensagem de status.
-                                 ; Usa: tmp, tmp2, Z. Altera: seg, ledsD, ledsB.
+                                 ; Le da tabela a linha do estado atual e aplica tudo que ela define:
+                                 ; o tempo, as cores dos LEDs e a mensagem de status.
+                                 ; Entrada : "estado" = indice (0..6)
+                                 ; Altera  : seg, ledsD, ledsB, tmp, tmp2, Z
                                  ;==============================================================================
                                  carrega_estado:
-                                     ; Z = endereco(tabela_estados) + estado * TAM_ESTADO
-0000b1 ede6                          ldi  ZL, low(tabela_estados*2)      ; *2: endereco em bytes para o lpm
-0000b2 e0f1                          ldi  ZH, high(tabela_estados*2)
-0000b3 2f02                          mov  tmp, estado
-0000b4 0f00                          lsl  tmp                    ; x2
-0000b5 0f00                          lsl  tmp                    ; x4  (TAM_ESTADO = 4)
-0000b6 0fe0                          add  ZL, tmp
-0000b7 1ff6                          adc  ZH, zero               ; propaga o carry para o byte alto
+                                     ; ---- calcula o endereco da linha: base + indice * 4 ------------------
+0000c5 efea                          ldi  ZL, low(tabela_estados*2)   ; Z aponta para o inicio da tabela.
+0000c6 e0f1                          ldi  ZH, high(tabela_estados*2)  ; "*2" converte palavras em bytes, que e
+                                                                      ; como "lpm" enderaca a flash
+0000c7 2f02                          mov  tmp, estado          ; tmp = indice do estado
+0000c8 0f00                          lsl  tmp                  ; desloca 1 bit a esquerda = multiplica por 2
+0000c9 0f00                          lsl  tmp                  ; de novo = multiplica por 4 (TAM_ESTADO)
+0000ca 0fe0                          add  ZL, tmp              ; soma o deslocamento ao byte baixo de Z
+0000cb 1ff6                          adc  ZH, zero             ; e propaga o "vai um" para o byte alto
+                                                               ; (adc soma o carry; por isso zero existe)
                                  
-0000b8 9135                          lpm  seg,   Z+              ; duracao do estado em segundos
-0000b9 9145                          lpm  ledsD, Z+              ; bits dos LEDs de PORTD (S1, S2)
-0000ba 9155                          lpm  ledsB, Z+              ; bits dos LEDs de PORTB (S3, S4, P)
+                                     ; ---- le os tres bytes uteis da linha ---------------------------------
+0000cc 9135                          lpm  seg,   Z+            ; byte 1: duracao do estado, em segundos
+0000cd 9145                          lpm  ledsD, Z+            ; byte 2: bits dos LEDs de PORTD (S1 e S2)
+0000ce 9155                          lpm  ledsB, Z+            ; byte 3: bits dos LEDs de PORTB (S3, S4 e P)
+                                                               ; (o byte 4 existe so para a linha ter 4 bytes)
                                  
-0000bb d012                          rcall atualiza_leds         ; acende os LEDs do novo estado
+0000cf d01b                          rcall atualiza_leds       ; [REQUISITO 6] acende as cores deste estado
                                  
-                                     ; ---- agenda a mensagem de status --------------------------------------
-                                     ; Z = tab_strings + estado*2 -> contem o endereco da string do estado
-0000bc efe2                          ldi  ZL, low(tab_strings*2)
-0000bd e0f1                          ldi  ZH, high(tab_strings*2)
-0000be 2f02                          mov  tmp, estado
-0000bf 0f00                          lsl  tmp                    ; x2 (cada ponteiro tem 2 bytes)
-0000c0 0fe0                          add  ZL, tmp
-0000c1 1ff6                          adc  ZH, zero
-0000c2 9105                          lpm  tmp,  Z+               ; byte baixo do endereco da string
-0000c3 9114                          lpm  tmp2, Z                ; byte alto
-0000c4 9300 0100                     sts  tx_ptr,   tmp
-0000c6 9310 0101                     sts  tx_ptr+1, tmp2
+                                     ; ---- escolhe a mensagem de status deste estado -----------------------
+                                     ; [REQUISITO 4] "tab_strings" e um vetor de ponteiros: na posicao do
+                                     ; estado esta o endereco da string correspondente.
+0000d0 e1e6                          ldi  ZL, low(tab_strings*2)    ; Z aponta para o inicio do vetor
+0000d1 e0f2                          ldi  ZH, high(tab_strings*2)   ; ...byte alto do endereco
+0000d2 2f02                          mov  tmp, estado          ; indice do estado
+0000d3 0f00                          lsl  tmp                  ; x2, porque cada ponteiro ocupa 2 bytes
+0000d4 0fe0                          add  ZL, tmp              ; soma ao endereco base
+0000d5 1ff6                          adc  ZH, zero             ; propaga o carry
+0000d6 9105                          lpm  tmp,  Z+             ; byte baixo do endereco da string
+0000d7 9114                          lpm  tmp2, Z              ; byte alto
+0000d8 d001                          rcall agenda_string       ; entrega essa string a serial
+0000d9 9508                          ret                       ; volta para quem chamou (reset ou isr_timer1)
                                  
-                                     ; Habilita a interrupcao UDRE: como o registrador ja esta vazio, a ISR
-                                     ; dispara imediatamente e comeca a transmitir.
-                                     ; Obs.: o menor estado dura 4 s e a maior mensagem leva ~0,1 s a 9600 bps,
-                                     ; entao nunca ha uma transmissao em andamento neste ponto.
-0000c8 9100 00c1                     lds  tmp, UCSR0B
-0000ca 6200                          sbr  tmp, (1<<UDRIE0)
-0000cb 9300 00c1                     sts  UCSR0B, tmp
-0000cd 9508                          ret
+                                 ;==============================================================================
+                                 ; agenda_string
+                                 ; [REQUISITO 2] [REQUISITO 4]
+                                 ; Entrada: tmp:tmp2 = endereco (em bytes, na flash) de uma string terminada
+                                 ;          em 0.
+                                 ; Se a serial estiver parada, torna essa string a atual e liga a interrupcao
+                                 ; UDRE, que entao envia tudo sozinha.  Se ainda houver uma transmissao em
+                                 ; andamento, guarda o endereco em "tx_next" e a ISR pega quando terminar.
+                                 ; Na pratica a fila so e usada na partida (banner + linha de q1); depois disso
+                                 ; o estado mais curto dura 4 s e a maior mensagem leva cerca de 0,09 s a
+                                 ; 9600 bps, entao nunca ha sobreposicao.
+                                 ; Altera: ZL (usado como temporario), tmp, tmp2 preservados
+                                 ;==============================================================================
+                                 agenda_string:
+0000da 91e0 00c1                     lds  ZL, UCSR0B           ; le a configuracao atual da USART
+0000dc fde5                          sbrc ZL, UDRIE0           ; a interrupcao UDRE esta ligada?
+                                                               ; "sbrc" = pula a proxima instrucao se o bit = 0
+0000dd c008                          rjmp ag_fila              ; bit = 1: ha transmissao em curso -> vai p/ fila
+                                 
+0000de 9300 0100                     sts  tx_ptr,   tmp        ; serial livre: esta string vira a atual
+0000e0 9310 0101                     sts  tx_ptr+1, tmp2       ; ...byte alto do ponteiro
+0000e2 62e0                          sbr  ZL, (1<<UDRIE0)      ; liga a interrupcao "registrador vazio"
+0000e3 93e0 00c1                     sts  UCSR0B, ZL           ; como ele ja esta vazio, a ISR dispara em
+                                                               ; seguida e comeca a enviar
+0000e5 9508                          ret                       ; volta; o envio segue sozinho, por interrupcao
+                                 
+                                 ag_fila:
+0000e6 9300 0102                     sts  tx_next,   tmp       ; ocupada: a string espera a vez na fila
+0000e8 9310 0103                     sts  tx_next+1, tmp2      ; ...byte alto do ponteiro
+0000ea 9508                          ret                       ; a ISR a pegara quando terminar a atual
                                  
                                  ;==============================================================================
                                  ; atualiza_leds
-                                 ; Escreve ledsD em PD2..PD7 e ledsB em PB0..PB5, preservando os demais bits
-                                 ; de cada porta (PD0/PD1 sao a USART; PB6/PB7 sao o cristal).
-                                 ; Usa: tmp.
+                                 ; [REQUISITO 6]
+                                 ; Escreve os bits de cor nos pinos, preservando os pinos que nao sao LEDs.
+                                 ; Entrada: ledsD (bits para PORTD), ledsB (bits para PORTB)
+                                 ; Altera : tmp
                                  ;==============================================================================
                                  atualiza_leds:
-0000ce b10b                          in   tmp, PORTD
-0000cf 7003                          andi tmp, 0x03              ; zera PD2..PD7, preserva PD0/PD1 (USART)
-0000d0 2b04                          or   tmp, ledsD
-0000d1 b90b                          out  PORTD, tmp
+0000eb b10b                          in   tmp, PORTD           ; le o estado atual da porta D
+0000ec 7003                          andi tmp, 0x03            ; zera PD2..PD7 (os LEDs) e mantem PD0/PD1,
+                                                               ; que pertencem a USART e nao podem ser mexidos
+0000ed 2b04                          or   tmp, ledsD           ; acrescenta os bits das cores deste estado
+0000ee b90b                          out  PORTD, tmp           ; escreve: os LEDs de S1 e S2 mudam juntos
                                  
-0000d2 b105                          in   tmp, PORTB
-0000d3 7c00                          andi tmp, 0xC0              ; zera PB0..PB5, preserva PB6/PB7 (cristal)
-0000d4 2b05                          or   tmp, ledsB
-0000d5 b905                          out  PORTB, tmp
-0000d6 9508                          ret
+0000ef b105                          in   tmp, PORTB           ; mesma ideia na porta B
+0000f0 7c00                          andi tmp, 0xC0            ; zera PB0..PB5 e mantem PB6/PB7 (cristal)
+0000f1 2b05                          or   tmp, ledsB           ; acrescenta as cores de S3, S4 e P
+0000f2 b905                          out  PORTB, tmp           ; escreve
+0000f3 9508                          ret                       ; o estado ja esta visivel nos 14 LEDs
                                  
                                  ;==============================================================================
                                  ; separa_digitos
-                                 ; Converte "seg" (0..99) em dezena e unidade, guardadas em dez/uni para a
-                                 ; ISR do Timer0 mostrar nos displays.
-                                 ; Usa: tmp. Altera: dez, uni.
+                                 ; [REQUISITO 3] [REQUISITO 7]
+                                 ; Converte "seg" (0..99) nos dois digitos decimais que os displays mostram.
+                                 ; O AVR nao tem instrucao de divisao, entao a conta e feita por subtracoes
+                                 ; sucessivas: quantas vezes da para tirar 10 e quanto sobra.
+                                 ; Entrada: seg.  Saida: dez, uni.  Altera: tmp
                                  ;==============================================================================
                                  separa_digitos:
-0000d7 2f03                          mov  tmp, seg               ; tmp = valor a mostrar
-0000d8 2777                          clr  dez
+0000f4 2f03                          mov  tmp, seg             ; copia o valor, para nao destruir "seg"
+0000f5 2777                          clr  dez                  ; comeca com zero dezenas
                                  sd_loop:
-0000d9 300a                          cpi  tmp, 10
-0000da f018                          brlo sd_pronto              ; tmp < 10 -> terminou a divisao
-0000db 500a                          subi tmp, 10                ; tmp = tmp - 10
-0000dc 9573                          inc  dez                    ; dezenas++
-0000dd cffb                          rjmp sd_loop
+0000f6 300a                          cpi  tmp, 10              ; ainda da para tirar 10?
+0000f7 f018                          brlo sd_pronto            ; menor que 10: acabou, o que sobrou e a unidade
+0000f8 500a                          subi tmp, 10              ; tira 10
+0000f9 9573                          inc  dez                  ; e conta mais uma dezena
+0000fa cffb                          rjmp sd_loop              ; repete
                                  sd_pronto:
-0000de 2f80                          mov  uni, tmp               ; o que sobrou e a unidade
-0000df 9508                          ret
+0000fb 2f80                          mov  uni, tmp             ; o resto (0..9) e o digito das unidades
+0000fc 9508                          ret                       ; dez e uni sao lidos pela ISR do Timer0
                                  
                                  ;==============================================================================
-                                 ; envia_string_polling
-                                 ; Envia a string em flash apontada por Z esperando o UDRE0 por polling.
-                                 ; Usada so para a mensagem de abertura, antes de habilitar as interrupcoes.
-                                 ; Usa: tmp, tmp2, Z.
-                                 ;==============================================================================
-                                 envia_string_polling:
-                                 esp_loop:
-0000e0 9105                          lpm  tmp, Z+
-0000e1 2300                          tst  tmp
-0000e2 f039                          breq esp_fim                ; 0 = fim
-                                 esp_espera:
-0000e3 9110 00c0                     lds  tmp2, UCSR0A
-0000e5 ff15                          sbrs tmp2, UDRE0            ; espera o registrador esvaziar
-0000e6 cffc                          rjmp esp_espera
-0000e7 9300 00c6                     sts  UDR0, tmp
-0000e9 cff6                          rjmp esp_loop
-                                 esp_fim:
-0000ea 9508                          ret
-                                 
-                                 ;==============================================================================
-                                 ; TABELA DE ESTADOS (na flash)
-                                 ; Uma linha por estado: duracao (s), bits de PORTD, bits de PORTB, 0.
-                                 ; O byte final so existe para cada linha ter 4 bytes (indexacao com estado*4).
+                                 ; TABELA DE ESTADOS (gravada na memoria flash)
                                  ;
-                                 ; Para alterar a temporizacao ou as cores, edite APENAS esta tabela e as
-                                 ; strings de status abaixo. O codigo nao precisa mudar.
+                                 ; Esta tabela E a maquina de estados: o codigo acima e generico e nao sabe
+                                 ; nada sobre semaforos.  Para mudar tempos ou cores, edita-se apenas esta
+                                 ; tabela (e as strings logo abaixo).
+                                 ;
+                                 ; Cada linha tem 4 bytes:
+                                 ;   1) duracao do estado, em segundos
+                                 ;   2) bits dos LEDs de PORTD  (S1 e S2)
+                                 ;   3) bits dos LEDs de PORTB  (S3, S4 e P)
+                                 ;   4) byte reservado, so para a linha ter 4 bytes e o calculo do endereco
+                                 ;      ser um deslocamento de 2 bits ("lsl" duas vezes em carrega_estado)
                                  ;
                                  ;  Estado (codigo) | S1 | S2 | S3 | S4 | P  | Duracao | Quem passa
                                  ;  ----------------+----+----+----+----+----+---------+----------------------
@@ -1503,373 +1636,382 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
                                  ;    q5   (100)    | Vm | Vm | Vm | Vm | Vd |  15 s   | vermelho geral: so pedestre
                                  ;    q6   (101)    | Vm | Vd | Vd | Vm | Vm |  23 s   | sobe: reto + conversao
                                  ;    q7   (110)    | Vm | Am | Vd | Vm | Vm |   4 s   | conversao fechando
-                                 ;  Ciclo total: 142 s. Depois de q7 volta a q1.
+                                 ;  Ciclo total: 142 s.  Depois de q7 o ciclo recomeca em q1.
                                  ;
-                                 ;  Pedestre (P): fica verde de q3 a q5, enquanto S2, S3 e S4 estao vermelhos.
-                                 ;  q5 e o "vermelho geral": todos os veiculos parados e so o pedestre
-                                 ;  atravessa. Se no levantamento o pedestre ja estiver vermelho em q5, troque
-                                 ;  P_VD por P_VM na linha de q5.
+                                 ; Tres regras que a tabela respeita, e que valem citar na apresentacao:
+                                 ;   - nenhum sinal passa de verde direto para vermelho: sempre ha amarelo;
+                                 ;   - o pedestre so fica verde quando S2, S3 e S4 estao vermelhos, porque as
+                                 ;     duas faixas atravessam a avenida;
+                                 ;   - todo amarelo dura 4 s, medidos no estudo de campo.
                                  ;==============================================================================
                                  tabela_estados:
-                                     ;   dur  PORTD (S1, S2)     PORTB (S3, S4, P)          reservado
-0000eb 2435
-0000ec 0034                          .db 53,  S1_VM|S2_VM,       S3_VD|S4_VD|P_VM,          0   ; q1
-0000ed 2404
-0000ee 0022                          .db  4,  S1_VM|S2_VM,       S3_AM|S4_AM|P_VM,          0   ; q2
-0000ef 3027
-0000f0 0009                          .db 39,  S1_VD|S2_VM,       S3_VM|S4_VM|P_VD,          0   ; q3
-0000f1 2804
-0000f2 0009                          .db  4,  S1_AM|S2_VM,       S3_VM|S4_VM|P_VD,          0   ; q4
-0000f3 240f
-0000f4 0009                          .db 15,  S1_VM|S2_VM,       S3_VM|S4_VM|P_VD,          0   ; q5
-0000f5 8417
-0000f6 002c                          .db 23,  S1_VM|S2_VD,       S3_VD|S4_VM|P_VM,          0   ; q6
-0000f7 4404
-0000f8 002c                          .db  4,  S1_VM|S2_AM,       S3_VD|S4_VM|P_VM,          0   ; q7
+                                     ;   dur  PORTD (S1, S2)     PORTB (S3, S4, P)       reserva
+0000fd 2435
+0000fe 0034                          .db 53,  S1_VM|S2_VM,       S3_VD|S4_VD|P_VM,       0   ; q1
+0000ff 2404
+000100 0022                          .db  4,  S1_VM|S2_VM,       S3_AM|S4_AM|P_VM,       0   ; q2 (um bit so
+                                                                                             ;     acende os
+                                                                                             ;     dois amarelos)
+000101 3027
+000102 0009                          .db 39,  S1_VD|S2_VM,       S3_VM|S4_VM|P_VD,       0   ; q3
+000103 2804
+000104 0009                          .db  4,  S1_AM|S2_VM,       S3_VM|S4_VM|P_VD,       0   ; q4
+000105 240f
+000106 0009                          .db 15,  S1_VM|S2_VM,       S3_VM|S4_VM|P_VD,       0   ; q5
+000107 8417
+000108 002c                          .db 23,  S1_VM|S2_VD,       S3_VD|S4_VM|P_VM,       0   ; q6
+000109 4404
+00010a 002c                          .db  4,  S1_VM|S2_AM,       S3_VD|S4_VM|P_VM,       0   ; q7
                                  
                                  ;------------------------------------------------------------------------------
-                                 ; Tabela de ponteiros para as strings de status (enderecos em bytes).
-                                 ; A ordem deve ser a mesma da tabela de estados.
+                                 ; Vetor de ponteiros para as mensagens de status.
+                                 ; ".dw" grava palavras de 16 bits; cada uma e o endereco (em bytes) de uma
+                                 ; string.  A ordem tem de ser a mesma da tabela de estados.
                                  ;------------------------------------------------------------------------------
                                  tab_strings:
-0000f9 024c
-0000fa 029c
-0000fb 02ee
-0000fc 033e                          .dw str_e1*2, str_e2*2, str_e3*2, str_e4*2
-0000fd 038e
-0000fe 03e0
-0000ff 0430                          .dw str_e5*2, str_e6*2, str_e7*2
+00010b 0272
+00010c 02c2
+00010d 0314
+00010e 0364                          .dw str_e1*2, str_e2*2, str_e3*2, str_e4*2
+00010f 03b4
+000110 0406
+000111 0456                          .dw str_e5*2, str_e6*2, str_e7*2
                                  
                                  ;------------------------------------------------------------------------------
-                                 ; Strings (sem acentos, para o terminal serial nao mostrar lixo).
-                                 ; 13,10 = CR LF (quebra de linha); 0 = terminador.
-                                 ; O montador pode avisar que preencheu um byte a mais quando o tamanho
-                                 ; e impar: nao tem problema, o byte extra fica depois do terminador.
+                                 ; MENSAGENS DE STATUS - [REQUISITO 4]
+                                 ; Formato pedido no enunciado: "Semaforo 1 - Amarelo; Semaforo 2 - Verde; ..."
+                                 ; Escritas sem acentos, porque o terminal serial nem sempre interpreta UTF-8.
+                                 ; Os numeros 13 e 10 sao CR e LF (fim de linha); o 0 final marca o fim da
+                                 ; string para a ISR da serial.
+                                 ; O montador pode avisar que preencheu um byte a mais nas strings de tamanho
+                                 ; impar; isso e normal e nao atrapalha, pois o byte extra fica depois do 0.
                                  ;------------------------------------------------------------------------------
                                  str_banner:
-000100 6553
-000101 616d
-000102 6f66
-000103 6f72
-000104 2073
-000105 202d
-000106 7641
-000107 202e
-000108 6c41
-000109 6176
-00010a 6f72
-00010b 4f20
-00010c 6174
-00010d 6963
-00010e 696c
-00010f 206f
-000110 2078
-000111 2e52
-000112 5020
-000113 6f72
-000114 2e66
-000115 5320
-000116 6e61
-000117 6f64
-000118 6176
-000119 206c
-00011a 7241
-00011b 6f72
-00011c 6578
-00011d 616c
-00011e 2073
-00011f 202d
-000120 614d
-000121 6563
-000122 6f69
-000123 412f
-000124 0d4c
-000125 000a                          .db "Semaforos - Av. Alvaro Otacilio x R. Prof. Sandoval Arroxelas - Maceio/AL", 13, 10, 0
+000112 6553
+000113 616d
+000114 6f66
+000115 6f72
+000116 2073
+000117 202d
+000118 7641
+000119 202e
+00011a 6c41
+00011b 6176
+00011c 6f72
+00011d 4f20
+00011e 6174
+00011f 6963
+000120 696c
+000121 206f
+000122 2078
+000123 7641
+000124 202e
+000125 7250
+000126 666f
+000127 202e
+000128 6153
+000129 646e
+00012a 766f
+00012b 6c61
+00012c 4120
+00012d 7272
+00012e 786f
+00012f 6c65
+000130 7361
+000131 2d20
+000132 4d20
+000133 6361
+000134 6965
+000135 2f6f
+000136 4c41
+000137 0a0d
+C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(649): warning: .cseg .db misalignment - padding zero byte
+000138 0000                          .db "Semaforos - Av. Alvaro Otacilio x Av. Prof. Sandoval Arroxelas - Maceio/AL", 13, 10, 0
                                  
-000126 3171
-000127 2820
-000128 3335
-000129 2973
-00012a 203a
-00012b 3153
-00012c 2d20
-00012d 5620
-00012e 7265
-00012f 656d
-000130 686c
-000131 3b6f
-000132 5320
-000133 2032
-000134 202d
-000135 6556
-000136 6d72
-000137 6c65
-000138 6f68
-000139 203b
-00013a 3353
-00013b 2d20
-00013c 5620
-00013d 7265
-00013e 6564
-00013f 203b
-000140 3453
-000141 2d20
-000142 5620
-000143 7265
-000144 6564
-000145 203b
-000146 2050
+000139 3171
+00013a 2820
+00013b 3335
+00013c 2973
+00013d 203a
+00013e 3153
+00013f 2d20
+000140 5620
+000141 7265
+000142 656d
+000143 686c
+000144 3b6f
+000145 5320
+000146 2032
 000147 202d
 000148 6556
 000149 6d72
 00014a 6c65
 00014b 6f68
-00014c 0a0d
-C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(511): warning: .cseg .db misalignment - padding zero byte
-00014d 0000                      str_e1: .db "q1 (53s): S1 - Vermelho; S2 - Vermelho; S3 - Verde; S4 - Verde; P - Vermelho", 13, 10, 0
-00014e 3271
-00014f 2820
-000150 7334
-000151 3a29
-000152 5320
-000153 2031
-000154 202d
-000155 6556
-000156 6d72
-000157 6c65
-000158 6f68
-000159 203b
-00015a 3253
-00015b 2d20
-00015c 5620
-00015d 7265
-00015e 656d
-00015f 686c
-000160 3b6f
-000161 5320
-000162 2033
-000163 202d
-000164 6d41
-000165 7261
-000166 6c65
-000167 3b6f
-000168 5320
-000169 2034
-00016a 202d
-00016b 6d41
-00016c 7261
-00016d 6c65
-00016e 3b6f
-00016f 5020
-000170 2d20
-000171 5620
-000172 7265
-000173 656d
-000174 686c
-000175 0d6f
-000176 000a                      str_e2: .db "q2 (4s): S1 - Vermelho; S2 - Vermelho; S3 - Amarelo; S4 - Amarelo; P - Vermelho", 13, 10, 0
-000177 3371
-000178 2820
-000179 3933
-00017a 2973
-00017b 203a
-00017c 3153
-00017d 2d20
-00017e 5620
-00017f 7265
-000180 6564
-000181 203b
-000182 3253
+00014c 203b
+00014d 3353
+00014e 2d20
+00014f 5620
+000150 7265
+000151 6564
+000152 203b
+000153 3453
+000154 2d20
+000155 5620
+000156 7265
+000157 6564
+000158 203b
+000159 2050
+00015a 202d
+00015b 6556
+00015c 6d72
+00015d 6c65
+00015e 6f68
+00015f 0a0d
+C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(651): warning: .cseg .db misalignment - padding zero byte
+000160 0000                      str_e1: .db "q1 (53s): S1 - Vermelho; S2 - Vermelho; S3 - Verde; S4 - Verde; P - Vermelho", 13, 10, 0
+000161 3271
+000162 2820
+000163 7334
+000164 3a29
+000165 5320
+000166 2031
+000167 202d
+000168 6556
+000169 6d72
+00016a 6c65
+00016b 6f68
+00016c 203b
+00016d 3253
+00016e 2d20
+00016f 5620
+000170 7265
+000171 656d
+000172 686c
+000173 3b6f
+000174 5320
+000175 2033
+000176 202d
+000177 6d41
+000178 7261
+000179 6c65
+00017a 3b6f
+00017b 5320
+00017c 2034
+00017d 202d
+00017e 6d41
+00017f 7261
+000180 6c65
+000181 3b6f
+000182 5020
 000183 2d20
 000184 5620
 000185 7265
 000186 656d
 000187 686c
-000188 3b6f
-000189 5320
-00018a 2033
-00018b 202d
-00018c 6556
-00018d 6d72
-00018e 6c65
-00018f 6f68
-000190 203b
-000191 3453
-000192 2d20
-000193 5620
-000194 7265
-000195 656d
-000196 686c
-000197 3b6f
-000198 5020
-000199 2d20
-00019a 5620
-00019b 7265
-00019c 6564
-00019d 0a0d
-C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(513): warning: .cseg .db misalignment - padding zero byte
-00019e 0000                      str_e3: .db "q3 (39s): S1 - Verde; S2 - Vermelho; S3 - Vermelho; S4 - Vermelho; P - Verde", 13, 10, 0
-00019f 3471
-0001a0 2820
-0001a1 7334
-0001a2 3a29
-0001a3 5320
-0001a4 2031
-0001a5 202d
-0001a6 6d41
-0001a7 7261
-0001a8 6c65
-0001a9 3b6f
-0001aa 5320
-0001ab 2032
-0001ac 202d
-0001ad 6556
-0001ae 6d72
-0001af 6c65
-0001b0 6f68
-0001b1 203b
-0001b2 3353
-0001b3 2d20
-0001b4 5620
-0001b5 7265
-0001b6 656d
-0001b7 686c
-0001b8 3b6f
-0001b9 5320
-0001ba 2034
-0001bb 202d
-0001bc 6556
-0001bd 6d72
-0001be 6c65
-0001bf 6f68
-0001c0 203b
-0001c1 2050
-0001c2 202d
-0001c3 6556
-0001c4 6472
-0001c5 0d65
-0001c6 000a                      str_e4: .db "q4 (4s): S1 - Amarelo; S2 - Vermelho; S3 - Vermelho; S4 - Vermelho; P - Verde", 13, 10, 0
-0001c7 3571
-0001c8 2820
-0001c9 3531
-0001ca 2973
-0001cb 203a
-0001cc 3153
-0001cd 2d20
-0001ce 5620
-0001cf 7265
-0001d0 656d
-0001d1 686c
-0001d2 3b6f
-0001d3 5320
-0001d4 2032
+000188 0d6f
+000189 000a                      str_e2: .db "q2 (4s): S1 - Vermelho; S2 - Vermelho; S3 - Amarelo; S4 - Amarelo; P - Vermelho", 13, 10, 0
+00018a 3371
+00018b 2820
+00018c 3933
+00018d 2973
+00018e 203a
+00018f 3153
+000190 2d20
+000191 5620
+000192 7265
+000193 6564
+000194 203b
+000195 3253
+000196 2d20
+000197 5620
+000198 7265
+000199 656d
+00019a 686c
+00019b 3b6f
+00019c 5320
+00019d 2033
+00019e 202d
+00019f 6556
+0001a0 6d72
+0001a1 6c65
+0001a2 6f68
+0001a3 203b
+0001a4 3453
+0001a5 2d20
+0001a6 5620
+0001a7 7265
+0001a8 656d
+0001a9 686c
+0001aa 3b6f
+0001ab 5020
+0001ac 2d20
+0001ad 5620
+0001ae 7265
+0001af 6564
+0001b0 0a0d
+C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(653): warning: .cseg .db misalignment - padding zero byte
+0001b1 0000                      str_e3: .db "q3 (39s): S1 - Verde; S2 - Vermelho; S3 - Vermelho; S4 - Vermelho; P - Verde", 13, 10, 0
+0001b2 3471
+0001b3 2820
+0001b4 7334
+0001b5 3a29
+0001b6 5320
+0001b7 2031
+0001b8 202d
+0001b9 6d41
+0001ba 7261
+0001bb 6c65
+0001bc 3b6f
+0001bd 5320
+0001be 2032
+0001bf 202d
+0001c0 6556
+0001c1 6d72
+0001c2 6c65
+0001c3 6f68
+0001c4 203b
+0001c5 3353
+0001c6 2d20
+0001c7 5620
+0001c8 7265
+0001c9 656d
+0001ca 686c
+0001cb 3b6f
+0001cc 5320
+0001cd 2034
+0001ce 202d
+0001cf 6556
+0001d0 6d72
+0001d1 6c65
+0001d2 6f68
+0001d3 203b
+0001d4 2050
 0001d5 202d
 0001d6 6556
-0001d7 6d72
-0001d8 6c65
-0001d9 6f68
-0001da 203b
-0001db 3353
-0001dc 2d20
-0001dd 5620
-0001de 7265
-0001df 656d
-0001e0 686c
-0001e1 3b6f
-0001e2 5320
-0001e3 2034
-0001e4 202d
-0001e5 6556
-0001e6 6d72
-0001e7 6c65
-0001e8 6f68
-0001e9 203b
-0001ea 2050
-0001eb 202d
-0001ec 6556
-0001ed 6472
-0001ee 0d65
-0001ef 000a                      str_e5: .db "q5 (15s): S1 - Vermelho; S2 - Vermelho; S3 - Vermelho; S4 - Vermelho; P - Verde", 13, 10, 0
-0001f0 3671
-0001f1 2820
-0001f2 3332
-0001f3 2973
-0001f4 203a
-0001f5 3153
-0001f6 2d20
-0001f7 5620
-0001f8 7265
-0001f9 656d
-0001fa 686c
-0001fb 3b6f
-0001fc 5320
-0001fd 2032
+0001d7 6472
+0001d8 0d65
+0001d9 000a                      str_e4: .db "q4 (4s): S1 - Amarelo; S2 - Vermelho; S3 - Vermelho; S4 - Vermelho; P - Verde", 13, 10, 0
+0001da 3571
+0001db 2820
+0001dc 3531
+0001dd 2973
+0001de 203a
+0001df 3153
+0001e0 2d20
+0001e1 5620
+0001e2 7265
+0001e3 656d
+0001e4 686c
+0001e5 3b6f
+0001e6 5320
+0001e7 2032
+0001e8 202d
+0001e9 6556
+0001ea 6d72
+0001eb 6c65
+0001ec 6f68
+0001ed 203b
+0001ee 3353
+0001ef 2d20
+0001f0 5620
+0001f1 7265
+0001f2 656d
+0001f3 686c
+0001f4 3b6f
+0001f5 5320
+0001f6 2034
+0001f7 202d
+0001f8 6556
+0001f9 6d72
+0001fa 6c65
+0001fb 6f68
+0001fc 203b
+0001fd 2050
 0001fe 202d
 0001ff 6556
 000200 6472
-000201 3b65
-000202 5320
-000203 2033
-000204 202d
-000205 6556
-000206 6472
-000207 3b65
-000208 5320
-000209 2034
-00020a 202d
-00020b 6556
-00020c 6d72
-00020d 6c65
-00020e 6f68
-00020f 203b
-000210 2050
+000201 0d65
+000202 000a                      str_e5: .db "q5 (15s): S1 - Vermelho; S2 - Vermelho; S3 - Vermelho; S4 - Vermelho; P - Verde", 13, 10, 0
+000203 3671
+000204 2820
+000205 3332
+000206 2973
+000207 203a
+000208 3153
+000209 2d20
+00020a 5620
+00020b 7265
+00020c 656d
+00020d 686c
+00020e 3b6f
+00020f 5320
+000210 2032
 000211 202d
 000212 6556
-000213 6d72
-000214 6c65
-000215 6f68
-000216 0a0d
-C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(516): warning: .cseg .db misalignment - padding zero byte
-000217 0000                      str_e6: .db "q6 (23s): S1 - Vermelho; S2 - Verde; S3 - Verde; S4 - Vermelho; P - Vermelho", 13, 10, 0
-000218 3771
-000219 2820
-00021a 7334
-00021b 3a29
-00021c 5320
-00021d 2031
-00021e 202d
-00021f 6556
-000220 6d72
-000221 6c65
-000222 6f68
-000223 203b
-000224 3253
-000225 2d20
-000226 4120
-000227 616d
-000228 6572
-000229 6f6c
-00022a 203b
-00022b 3353
-00022c 2d20
-00022d 5620
-00022e 7265
-00022f 6564
-000230 203b
-000231 3453
-000232 2d20
-000233 5620
-000234 7265
-000235 656d
-000236 686c
-000237 3b6f
-000238 5020
-000239 2d20
-00023a 5620
-00023b 7265
-00023c 656d
-00023d 686c
-00023e 0d6f
+000213 6472
+000214 3b65
+000215 5320
+000216 2033
+000217 202d
+000218 6556
+000219 6472
+00021a 3b65
+00021b 5320
+00021c 2034
+00021d 202d
+00021e 6556
+00021f 6d72
+000220 6c65
+000221 6f68
+000222 203b
+000223 2050
+000224 202d
+000225 6556
+000226 6d72
+000227 6c65
+000228 6f68
+000229 0a0d
+C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(656): warning: .cseg .db misalignment - padding zero byte
+00022a 0000                      str_e6: .db "q6 (23s): S1 - Vermelho; S2 - Verde; S3 - Verde; S4 - Vermelho; P - Vermelho", 13, 10, 0
+00022b 3771
+00022c 2820
+00022d 7334
+00022e 3a29
+00022f 5320
+000230 2031
+000231 202d
+000232 6556
+000233 6d72
+000234 6c65
+000235 6f68
+000236 203b
+000237 3253
+000238 2d20
+000239 4120
+00023a 616d
+00023b 6572
+00023c 6f6c
+00023d 203b
+00023e 3353
+00023f 2d20
+000240 5620
+000241 7265
+000242 6564
+000243 203b
+000244 3453
+000245 2d20
+000246 5620
+000247 7265
+000248 656d
+000249 686c
+00024a 3b6f
+00024b 5020
+00024c 2d20
+00024d 5620
+00024e 7265
+00024f 656d
+000250 686c
+000251 0d6f
 
 
 RESOURCE USE INFORMATION
@@ -1887,11 +2029,11 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328P" register use summary:
-x  :   0 y  :   0 z  :   7 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
+x  :   0 y  :   0 z  :   6 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  91 r17:   6 r18:   6 r19:   3 r20:   2 
-r21:   2 r22:   5 r23:   3 r24:   2 r25:   4 r26:   0 r27:   0 r28:   0 
-r29:   0 r30:  11 r31:  11 
+r13:   0 r14:   0 r15:   0 r16:  89 r17:   6 r18:   6 r19:   3 r20:   2 
+r21:   2 r22:   9 r23:   3 r24:   2 r25:   4 r26:   0 r27:   0 r28:   0 
+r29:   0 r30:  17 r31:  13 
 Registers used: 13 out of 35 (37.1%)
 
 "ATmega328P" instruction use summary:
@@ -1905,22 +2047,22 @@ clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   6 cls   :   0
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
 cpi   :   2 cpse  :   0 dec   :   1 eor   :   0 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   5 inc   :   2 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :  24 lds   :   5 lpm   :   8 lsl   :   3 
-lsr   :   0 mov   :   6 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   2 ori   :   2 out   :  16 pop   :  11 
-push  :  11 rcall :   6 ret   :   4 reti  :   3 rjmp  :  10 rol   :   0 
+ld    :   0 ldd   :   0 ldi   :  24 lds   :   6 lpm   :   7 lsl   :   3 
+lsr   :   0 mov   :   7 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   0 or    :   3 ori   :   2 out   :  16 pop   :  11 
+push  :  11 rcall :   7 ret   :   5 reti  :   3 rjmp  :  10 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :   0 sbic  :   0 sbis  :   0 
-sbiw  :   0 sbr   :   1 sbrc  :   0 sbrs  :   1 sec   :   0 seh   :   0 
+sbiw  :   0 sbr   :   1 sbrc  :   1 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  18 
-sub   :   0 subi  :   1 swap  :   0 tst   :   3 wdr   :   0 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  25 
+sub   :   0 subi  :   1 swap  :   0 tst   :   2 wdr   :   0 
 Instructions used: 32 out of 113 (28.3%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000480    374    682   1056   32768   3.2%
-[.dseg] 0x000100 0x000102      0      2      2    2048   0.1%
+[.cseg] 0x000000 0x0004a6    410    684   1094   32768   3.3%
+[.dseg] 0x000100 0x000104      0      4      4    2048   0.2%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
-Assembly complete, 0 errors, 3 warnings
+Assembly complete, 0 errors, 4 warnings

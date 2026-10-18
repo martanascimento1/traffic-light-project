@@ -22,36 +22,36 @@
   <FILE>codigo_semaforo_micro.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <tx_ptr><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>156</LINE></tx_ptr>
-  <reset><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>179</LINE></reset>
-  <isr_timer1><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>255</LINE></isr_timer1>
-  <isr_timer0><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>295</LINE></isr_timer0>
-  <isr_udre><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>328</LINE></isr_udre>
-  <str_banner><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>508</LINE></str_banner>
-  <envia_string_polling><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>446</LINE></envia_string_polling>
-  <carrega_estado><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>365</LINE></carrega_estado>
-  <separa_digitos><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>427</LINE></separa_digitos>
-  <loop><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>249</LINE></loop>
-  <t1_atualiza><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>275</LINE></t1_atualiza>
-  <t1_carrega><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>272</LINE></t1_carrega>
-  <t0_unidades><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>310</LINE></t0_unidades>
-  <t0_sai><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>317</LINE></t0_sai>
-  <udre_fim><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>346</LINE></udre_fim>
-  <udre_sai><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>351</LINE></udre_sai>
-  <tabela_estados><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>484</LINE></tabela_estados>
-  <atualiza_leds><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>409</LINE></atualiza_leds>
-  <tab_strings><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>498</LINE></tab_strings>
-  <sd_loop><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>430</LINE></sd_loop>
-  <sd_pronto><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>436</LINE></sd_pronto>
-  <esp_loop><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>447</LINE></esp_loop>
-  <esp_fim><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>457</LINE></esp_fim>
-  <esp_espera><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>451</LINE></esp_espera>
-  <str_e1><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>511</LINE></str_e1>
-  <str_e2><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>512</LINE></str_e2>
-  <str_e3><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>513</LINE></str_e3>
-  <str_e4><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>514</LINE></str_e4>
-  <str_e5><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>515</LINE></str_e5>
-  <str_e6><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>516</LINE></str_e6>
-  <str_e7><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>517</LINE></str_e7>
+  <tx_ptr><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>212</LINE></tx_ptr>
+  <tx_next><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>215</LINE></tx_next>
+  <reset><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>245</LINE></reset>
+  <isr_timer1><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>342</LINE></isr_timer1>
+  <isr_timer0><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>390</LINE></isr_timer0>
+  <isr_udre><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>426</LINE></isr_udre>
+  <str_banner><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>648</LINE></str_banner>
+  <agenda_string><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>528</LINE></agenda_string>
+  <carrega_estado><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>481</LINE></carrega_estado>
+  <separa_digitos><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>574</LINE></separa_digitos>
+  <loop><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>333</LINE></loop>
+  <t1_atualiza><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>365</LINE></t1_atualiza>
+  <t1_carrega><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>362</LINE></t1_carrega>
+  <t0_unidades><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>406</LINE></t0_unidades>
+  <t0_sai><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>413</LINE></t0_sai>
+  <udre_fim><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>445</LINE></udre_fim>
+  <udre_sai><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>466</LINE></udre_sai>
+  <udre_vazio><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>460</LINE></udre_vazio>
+  <tabela_estados><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>618</LINE></tabela_estados>
+  <atualiza_leds><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>553</LINE></atualiza_leds>
+  <tab_strings><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>635</LINE></tab_strings>
+  <ag_fila><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>541</LINE></ag_fila>
+  <sd_loop><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>577</LINE></sd_loop>
+  <sd_pronto><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>583</LINE></sd_pronto>
+  <str_e1><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>651</LINE></str_e1>
+  <str_e2><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>652</LINE></str_e2>
+  <str_e3><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>653</LINE></str_e3>
+  <str_e4><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>654</LINE></str_e4>
+  <str_e5><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>655</LINE></str_e5>
+  <str_e6><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>656</LINE></str_e6>
+  <str_e7><FILE>C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm</FILE><LINE>657</LINE></str_e7>
  </LABELS>
 </ASSEMBLER_INFO>

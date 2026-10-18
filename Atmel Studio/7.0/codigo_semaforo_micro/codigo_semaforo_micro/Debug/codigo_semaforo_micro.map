@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm Sun Oct 18 11:36:22 2026
+AVRASM ver. 2.2.8  C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm Sun Oct 18 17:46:30 2026
 
 
 EQU  SIGNATURE_000 0000001e
@@ -732,33 +732,33 @@ DEF  dez          r23
 DEF  uni          r24
 DEF  mux          r25
 DSEG tx_ptr       00000100
+DSEG tx_next      00000102
 CSEG reset        00000034
-CSEG isr_timer1   0000006c
-CSEG isr_timer0   00000081
-CSEG isr_udre     00000093
-CSEG str_banner   00000100
-CSEG envia_string_polling 000000e0
-CSEG carrega_estado 000000b1
-CSEG separa_digitos 000000d7
-CSEG loop         0000006b
-CSEG t1_atualiza  00000079
-CSEG t1_carrega   00000078
-CSEG t0_unidades  0000008b
-CSEG t0_sai       0000008f
-CSEG udre_fim     000000a6
-CSEG udre_sai     000000ab
-CSEG tabela_estados 000000eb
-CSEG atualiza_leds 000000ce
-CSEG tab_strings  000000f9
-CSEG sd_loop      000000d9
-CSEG sd_pronto    000000de
-CSEG esp_loop     000000e0
-CSEG esp_fim      000000ea
-CSEG esp_espera   000000e3
-CSEG str_e1       00000126
-CSEG str_e2       0000014e
-CSEG str_e3       00000177
-CSEG str_e4       0000019f
-CSEG str_e5       000001c7
-CSEG str_e6       000001f0
-CSEG str_e7       00000218
+CSEG isr_timer1   00000070
+CSEG isr_timer0   00000085
+CSEG isr_udre     00000097
+CSEG str_banner   00000112
+CSEG agenda_string 000000da
+CSEG carrega_estado 000000c5
+CSEG separa_digitos 000000f4
+CSEG loop         0000006f
+CSEG t1_atualiza  0000007d
+CSEG t1_carrega   0000007c
+CSEG t0_unidades  0000008f
+CSEG t0_sai       00000093
+CSEG udre_fim     000000aa
+CSEG udre_sai     000000bf
+CSEG udre_vazio   000000ba
+CSEG tabela_estados 000000fd
+CSEG atualiza_leds 000000eb
+CSEG tab_strings  0000010b
+CSEG ag_fila      000000e6
+CSEG sd_loop      000000f6
+CSEG sd_pronto    000000fb
+CSEG str_e1       00000139
+CSEG str_e2       00000161
+CSEG str_e3       0000018a
+CSEG str_e4       000001b2
+CSEG str_e5       000001da
+CSEG str_e6       00000203
+CSEG str_e7       0000022b
