@@ -105,7 +105,7 @@
 <item itemtype="Ground" CircId="Ground-160" mainComp="false" Show_id="false" Show_Val="false" Pos="-100,-180" rotation="0" hflip="1" vflip="1" label="Ground-160" idLabPos="-16,8" labelrot="0" valLabPos="-16,20" valLabRot="0" />
 
 <item itemtype="Subcircuit" CircId="Uno-13" mainComp="false" Show_id="true" Show_Val="false" Pos="-60,-580" rotation="0" hflip="1" vflip="1" label="Uno-13" idLabPos="-0.774784,-20" labelrot="0" valLabPos="-16,20" valLabRot="0" Logic_Symbol="false">
-<mainCompProps MainCompId="mega328-109" Frequency="16 MHz" Program="../../../OneDrive/Documentos/Atmel Studio/7.0/codigo_semaforo_micro/codigo_semaforo_micro/Debug/codigo_semaforo_micro.hex" Auto_Load="false" saveEepr="true" MainMcu="true" SerialMon="-1" />
+<mainCompProps MainCompId="mega328-109" Frequency="16 MHz" Program="../Atmel Studio/7.0/codigo_semaforo_micro/codigo_semaforo_micro/Debug/codigo_semaforo_micro.hex" Auto_Load="false" saveEepr="true" MainMcu="true" SerialMon="-1" />
 </item>
 
 <item itemtype="TextComponent" CircId="TextComponent-139" mainComp="false" Show_id="false" Show_Val="false" Pos="-280,-488" rotation="0" hflip="1" vflip="1" label="TextComponent-139" idLabPos="-16,-24" labelrot="0" valLabPos="-16,20" valLabRot="0" Margin="5 _px" Border="1 _px" Color="#ffffdc" Opacity="1" Font="Helvetica [Cronyx]" Font_Color="#000080" Font_Size="10 _px" Fixed_Width="false" Text="Semaforo 1" />

@@ -10,7 +10,7 @@ Simulação dos semáforos do cruzamento Av. Álvaro Otacílio x R. Prof. Sandov
 ## Como rodar
 
 1. Abra o SimulIDE e carregue `simulide/funcionando.sim1`.
-2. **Ajuste o caminho do firmware.** Os arquivos `.sim1` apontam para o `.hex` por um caminho relativo da máquina onde foram criados (`../../../OneDrive/Documentos/Atmel Studio/...`). Clique com o botão direito no Arduino Uno do circuito, escolha *Load firmware* e selecione `Atmel Studio/7.0/codigo_semaforo_micro/codigo_semaforo_micro/Debug/codigo_semaforo_micro.hex`. Alternativamente, edite o atributo `Program=` dentro do `.sim1` para `../Atmel Studio/7.0/codigo_semaforo_micro/codigo_semaforo_micro/Debug/codigo_semaforo_micro.hex`.
+2. O circuito já aponta para o firmware pelo caminho relativo `../Atmel Studio/7.0/codigo_semaforo_micro/codigo_semaforo_micro/Debug/codigo_semaforo_micro.hex`, então basta manter a estrutura de pastas do repositório. Se o SimulIDE não encontrar o `.hex`, clique com o botão direito no Arduino Uno do circuito, escolha *Load firmware* e selecione esse arquivo.
 3. Inicie a simulação.
 
 Para alterar o código, abra `codigo_semaforo_micro.atsln` no Atmel/Microchip Studio, edite `main.asm` e recompile. O `.hex` é regenerado em `Debug/`.

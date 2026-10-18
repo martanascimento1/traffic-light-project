@@ -19,7 +19,7 @@
 <item itemtype="Resistor" CircId="Resistor-12" mainComp="false" ShowProp="Resistance" Show_id="false" Show_Val="true" Pos="-332,-356" rotation="0" hflip="1" vflip="1" label="Resistor-12" idLabPos="-16,-24" labelrot="0" valLabPos="-8.29847,-8.70293" valLabRot="0" Resistance="220 Ω" />
 
 <item itemtype="Subcircuit" CircId="Uno-13" mainComp="false" Show_id="true" Show_Val="false" Pos="-60,-580" rotation="0" hflip="1" vflip="1" label="Uno-13" idLabPos="-0.774784,-20" labelrot="0" valLabPos="-16,20" valLabRot="0" Logic_Symbol="false">
-<mainCompProps MainCompId="mega328-109" Frequency="16 MHz" Program="../../../OneDrive/Documentos/Atmel Studio/7.0/codigo_semaforo_micro/codigo_semaforo_micro/Debug/codigo_semaforo_micro.hex" Auto_Load="false" saveEepr="true" MainMcu="true" SerialMon="1" />
+<mainCompProps MainCompId="mega328-109" Frequency="16 MHz" Program="../Atmel Studio/7.0/codigo_semaforo_micro/codigo_semaforo_micro/Debug/codigo_semaforo_micro.hex" Auto_Load="false" saveEepr="true" MainMcu="true" SerialMon="1" />
 </item>
 
 <item itemtype="7-Seg BCD" CircId="7-Seg BCD-14" mainComp="false" Show_id="false" Show_Val="false" Pos="196,-576" rotation="0" hflip="1" vflip="1" label="7-Seg BCD-14" idLabPos="-16,-40" labelrot="0" valLabPos="-16,20" valLabRot="0" Show_Point_Pin="false" Show_Enable_Pin="false" />
