@@ -1,4 +1,5 @@
 # traffic-light-project
+
 Simulação dos semáforos do cruzamento Av. Álvaro Otacílio x R. Prof. Sandoval Arroxelas (Maceió/AL) em Assembly para Arduino Uno (ATmega328P), com circuito no SimulIDE.
 
 ## Estrutura
