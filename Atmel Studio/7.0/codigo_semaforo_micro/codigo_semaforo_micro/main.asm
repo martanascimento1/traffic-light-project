@@ -1,5 +1,5 @@
 ;  SIMULACAO DOS SEMAFOROS DO CRUZAMENTO - Av. Alvaro Otacilio x Av. Prof. Sandoval Arroxelas - Ponta Verde, Maceio/AL
-;  SIGNIFICADO DOS SINAIS (levantamento de campo no cruzamento)
+;		Mapeamento dos sinais:
 ;     S1 = Av. Prof. Sandoval Arroxelas entrando na avenida (sinal lateral)
 ;     S2 = avenida, sentido que sobe, faixa de conversao para a Sandoval
 ;     S3 = avenida, sentido que sobe, segue em frente
@@ -7,35 +7,33 @@
 ;     P  = as duas faixas de pedestre sobre a avenida (abrem e fecham juntas,
 ;          por isso aqui tratamos como um unico sinal)
 
-.include "m328Pdef.inc"    
-.equ F_CPU        = 16000000  
+.include "m328Pdef.inc"   
+
+; Definição de constantes e equações de tempo: 
+.equ F_CPU        = 16000000  ; Frequência do oscilador (16 MHz)
 
 ;  Chaves para o modo de simulação:
-; 1 = depuracao no simulador do Microchip Studio.  O simulador é bem
-;     mais lento que o chip real; com os tempos normais, cada "segundo"
-;     da maquina levaria minutos de relogio para simular.
+; 1 = depuracao no simulador do Microchip Studio.  
 ; 0 = versao final,usada  para o SimulIDE e para quando trabalharmos no protoboard.
 .equ SIMULACAO    = 0
-
 .if SIMULACAO                ; so é compilado quando SIMULACAO = 1 
 .equ UBRR_VAL     = 0        ; 62500 bps: as strings saem em poucos ciclos
 .equ OCR1A_VAL    = 624      ; "segundo" encurtado para 10 ms
 .else                        ; so é compilado quando SIMULACAO = 0
-.equ BAUD         = 9600     ; velocidade da serial em bps
-.equ UBRR_VAL     = (F_CPU/16/BAUD)-1   ; = 103.  Formula do datasheet do ATmega328P para o modo assincrono
-                                        ; normal: UBRR = F_CPU/(16*BAUD) - 1
+.equ BAUD         = 9600     ; velocidade da porta serial em bps
+.equ UBRR_VAL     = (F_CPU/16/BAUD)-1   ; Calculo do registrador de baud rate (= 103)                            
 ;   Conta do Timer1, que gera o segundo:
 ;   prescaler 256  ->  16.000.000 / 256 = 62.500 contagens por segundo
 ;   em modo CTC o timer zera quando chega em OCR1A, ou seja, conta
 ;   OCR1A + 1 vezes; para 62.500 contagens, temos OCR1A = 62.499.
-.equ OCR1A_VAL    = 62499
+.equ OCR1A_VAL    = 62499 ; Comparador para o Timer1 (1 segundo)
 .endif
 
-;   Conta do Timer0, que varre os displays:
+;   Conta do Timer0, que varre os displays (5ms para a Multiplexação):
 ;   prescaler 1024  ->  16.000.000 / 1024 = 15.625 contagens por segundo
 ;   queremos 5 ms = 1/200 s  ->  15.625 / 200 = 78 contagens
 ;   em CTC conta OCR0A + 1 vezes, logo temos OCR0A = 77.
-.equ OCR0A_VAL    = 77
+.equ OCR0A_VAL    = 77 ; Comparador para o Timer0 (5 ms)
 
 .equ NUM_ESTADOS  = 7         ; numero de  linhas da tabela de estados
 .equ TAM_ESTADO   = 4         ; quantidade de bytes por linha (duracao, PORTD, PORTB, livre)
@@ -89,7 +87,7 @@ tx_next: .byte 2              ; endereco da proxima string da fila; 0 = fila vaz
 
 ; TABELA DE VETORES DE INTERRUPCAO
 ; Quando uma interrupcao ocorre, o processador salta automaticamente para um
-; endereco fixo da flash, diferente para cada fonte.  Colocamos em cada um
+; endereco fixo da flash, diferente para cada fonte. Colocamos em cada um
 ; desses enderecos um salto para a nossa rotina.
 
 .cseg                         
@@ -97,21 +95,19 @@ tx_next: .byte 2              ; endereco da proxima string da fila; 0 = fila vaz
 .org 0x0000                   ; endereco 0: para onde o chip vai ao ligar
     rjmp reset                ; desvia para a inicializacao
 
-.org OC1Aaddr                 ; vetor "Timer1 Compare Match A"
+.org OC1Aaddr                 ; Interrupção do Timer1 (Compare Match A)
     rjmp isr_timer1           ; -> nossa rotina do tique de 1 segundo
 
-.org OC0Aaddr                 ; vetor "Timer0 Compare Match A"
+.org OC0Aaddr                 ; Interrupção do Timer0 (Compare Match A)
     rjmp isr_timer0           ; -> nossa rotina da varredura dos displays
 
-.org UDREaddr                 ; vetor "USART Data Register Empty"
+.org UDREaddr                 ; Interrupção da USART (Registrador de dados vazio)
     rjmp isr_udre             ; -> nossa rotina que envia o proximo caractere
 
 .org INT_VECTORS_SIZE         ; pula o resto da tabela de vetores; 
 
-
 reset:
-  
-    ; A pilha guarda o endereco de retorno dos "rcall" e o que as ISRs empilham. 
+    ; A pilha guarda o endereco de retorno dos "rcall" no topo da RAM e o que as ISRs empilham. 
     ldi  tmp, high(RAMEND)    ; byte alto do ultimo endereco da RAM para a parte alta do ponteiro de pilha
     out  SPH, tmp             
     ldi  tmp, low(RAMEND)     ; byte baixo para a parte baixa
@@ -122,16 +118,15 @@ reset:
 
     ; direcao dos pinos (DDR = 1 significa saida)
     ldi  tmp, MASK_D          ; 0b11111100
-    out  DDRD, tmp            ; PD2..PD7 viram saidas (LEDs); PD0/PD1 ficam
-                              ; como estao, para a USART usar
+    out  DDRD, tmp            ; pinos PD2..PD7 viram saidas (LEDs); PD0/PD1 ficam como estao, para a USART usar
     ldi  tmp, MASK_B          ; 0b00111111
-    out  DDRB, tmp            ; PB0..PB5 viram saidas (LEDs)
+    out  DDRB, tmp            ; pinos PB0..PB5 viram saidas (LEDs)
     ldi  tmp, 0x3F            ; 0b00111111
-    out  DDRC, tmp            ; PC0..PC3 saidas (BCD) e PC4/PC5 saidas  (selecao dos displays)
+    out  DDRC, tmp            ; pinos PC0..PC3 viram saidas (BCD) e PC4/PC5 saidas  (selecao dos displays)
                               
     out  PORTC, zero          ; comeca com os dois displays apagados e o BCD em 0
 
-    ;  USART0: 9600 bps, 8 bits de dados, sem paridade, 1 stop 
+    ;  Inicializa o hardware da USART gravando o valor UBRR_VAL nos registradores UBRR0H/L e habilitando a transmissão (TXEN0) no formato 8N1. 
     ldi  tmp, high(UBRR_VAL)  ; byte alto do divisor de velocidade
     sts  UBRR0H, tmp          ; (UBRR0H/L ficam fora do alcance de "out",
     ldi  tmp, low(UBRR_VAL)   ;  por isso "sts", que aceita endereco de 16 bits)
@@ -183,30 +178,27 @@ loop:
     rjmp loop                 ; fica girando aqui ate uma interrupcao ocorrer
 
 ; isr_timer1 - INTERRUPCAO DO TIMER1, uma vez por segundo
-; Faz o tempo passar: descontando um segundo, atualizando os digitos do contador e,
-; quando o tempo do estado acaba, avança a maquina de estados.
+
 
 isr_timer1:
-    ; Uma ISR pode interromper o programa em qualquer ponto, entao ela tem de devolver todos os registradores que usar exatamente como estavam.
-    push tmp                  ; salva tmp
+    ; A cada segundo, reduz a contagem regressiva. Ao alcançar 0, avança para o próximo estado da FSM,
+	; atualiza os registradores de saída dos LEDs e agenda a nova mensagem serial. 
+    push tmp                  ; salva contexto
     in   tmp, SREG            ; le o registrador de status (flags Z, C, N...)
     push tmp                  
     push tmp2                 ; salva tmp2
     push ZL                   ; salva o ponteiro Z (usado por carrega_estado) nas suas duas metades
     push ZH                   
-
-    dec  seg                  ; passou 1 segundo: um a menos no estado atual
-    brne t1_atualiza          ; se nao chegou a zero, então atualiza o display
-
-    inc  estado               ; avanca o indice
+    dec  seg                  ; Decrementa o tempo restante do estado
+    brne t1_atualiza          ; Se ainda não é zero, apenas atualiza o display
+    inc  estado               ; Se zerou, passa para o próximo estado
     cpi  estado, NUM_ESTADOS  ; passou do ultimo estado (q7)? --> nao: segue com o indice novo e sim: o ciclo reinicia em q1
     brlo t1_carrega           
     clr  estado               
 t1_carrega:
-    rcall carrega_estado      ; le a nova linha: tempo, LEDs e mensagem serial
-
+    rcall carrega_estado      ; Lê novos valores da Flash
 t1_atualiza:
-    rcall separa_digitos      ; dez/uni passam a valer o novo "seg"
+    rcall separa_digitos      ; Converte "seg" para BCD (dezena/unidade)
 
     pop  ZH                   ; devolve os registradores na ordem inversa da que foram empilhados
     pop  ZL                   
@@ -218,31 +210,24 @@ t1_atualiza:
                               ; as interrupcoes
 
 ; isr_timer0 - INTERRUPCAO DO TIMER0, a cada 5 ms
-; Multiplexacao: com um unico decodificador BCD para dois displays, como so da para
-; mostrar um digito de cada vez.  Esta rotina alterna entre eles tao depressa
-; que os dois parecem estar acesos ao mesmo tempo (100 atualizacoes por segundo em
-; cada um).
-;
-; Detalhe importante: o digito (bits 0..3) e o bit que liga o display (4 ou 5)
-; sao escritos em PORTC numa UNICA instrucao "out".  
+;  A cada 5 ms, alterna qual display está ligado.  
 isr_timer0:
     push tmp                  ; salva tmp
     in   tmp, SREG            ; le os flags
     push tmp                  ; e salva tambem
 
-    tst  mux                  ; mux vale 0 ou 1? --> se for 1, é a vez das unidades
+    tst  mux                  ; Verifica se acendeu dezenas (0) ou unidades (1)
     brne t0_unidades          
     
-    mov  tmp, dez             ; tmp = digito das dezenas (0..9, cabe em 4 bits)
-    ori  tmp, SEL_DEZ         ; acrescenta o bit que liga o display da dezena
-    out  PORTC, tmp           ; escrita unica: BCD + selecao
-                              ; (o display das unidades apaga, pois PC4 = 0)
+    mov  tmp, dez             ; Pega o dígito da dezena
+    ori  tmp, SEL_DEZ         ; Ativa o bit de seleção do display 1 (PC5)
+    out  PORTC, tmp           ; Envia BCD + Seleção de uma só vez
     ldi  mux, 1               
     rjmp t0_sai               ; pula o trecho das unidades
 
 t0_unidades:
-    mov  tmp, uni             ; tmp = digito das unidades
-    ori  tmp, SEL_UNI         ; acrescenta o bit que liga o display da unidade
+    mov  tmp, uni             ; Pega o dígito da unidade
+    ori  tmp, SEL_UNI         ; Ativa o bit de seleção do display 2 (PC4)
     out  PORTC, tmp           ; escrita unica: BCD + selecao
     clr  mux                  ; proximo tique volta a ser das dezenas
 
@@ -253,6 +238,9 @@ t0_sai:
     reti                      ; volta
 
 ; isr_udre - INTERRUPCAO DA USART, "registrador de transmissao vazio"
+; Sempre que o hardware envia um caractere e fica livre para o próximo, ele dispara a interrupção UDRE
+; A ISR pega o próximo caractere da string armazenada na Flash e o escreve no registrador UDR0
+; sem travar o processador com laços de espera.
 isr_udre:
     push tmp                  ; salva tmp
     in   tmp, SREG            ; le os flags
@@ -266,8 +254,7 @@ isr_udre:
     tst  tmp                  ; o caractere é 0? 0 marca o fim da string
     breq udre_fim             
 
-    sts  UDR0, tmp            ; escreve no registrador de dados: o hardware
-                              ; transmite esse byte bit a bit
+    sts  UDR0, tmp            ; escreve no registrador de dados: o hardware transmite esse byte bit a bit
     sts  tx_ptr,   ZL         ; guarda o ponteiro ja avancado para a proxima
     sts  tx_ptr+1, ZH         ; chamada desta ISR
     rjmp udre_sai             
@@ -301,10 +288,11 @@ udre_sai:
     reti                      ; volta ao ponto interrompido
 
 
+
 carrega_estado:
     ; calcula o endereco da linha: base + indice * 4 
     ldi  ZL, low(tabela_estados*2)   ; Z aponta para o inicio da tabela.
-    ldi  ZH, high(tabela_estados*2)  ; "*2" converte palavras em bytes, que como "lpm" enderaca a flash
+    ldi  ZH, high(tabela_estados*2)  ; "*2" converte palavras em bytes
                                      
     mov  tmp, estado          ; tmp = indice do estado
     lsl  tmp                  ; desloca 1 bit a esquerda = multiplica por 2
@@ -377,11 +365,6 @@ sd_pronto:
     ret                       ; dez e uni sao lidos pela ISR do Timer0
 
 ; TABELA DE ESTADOS (gravada na memoria flash)
-;
-; Esta tabela representa a maquina de estados: o código acima é genérico e nao modela nada sobre os semáforos.  Para mudarmos tempos ou cores, editamos apenas esta
-;tabela (e as strings logo abaixo).
-
-;
 ; Cada linha tem 4 bytes:
 ;   1) duracao do estado, em segundos
 ;   2) bits dos LEDs de PORTD  (S1 e S2)
@@ -397,14 +380,14 @@ sd_pronto:
 ;    q5   (100)    | Vm | Vm | Vm | Vm | Vd |  15 s   | vermelho geral: so pedestre
 ;    q6   (101)    | Vm | Vd | Vd | Vm | Vm |  23 s   | sobe: reto + conversao
 ;    q7   (110)    | Vm | Am | Vd | Vm | Vm |   4 s   | conversao fechando
+
 ;  Ciclo total: 142 s.  Depois de q7 o ciclo recomeca em q1.
-;
 ; Tres regras que a tabela respeita, e que valem citar na apresentacao:
 ;   - nenhum sinal passa de verde direto para vermelho: sempre ha amarelo;
 ;   - o pedestre so fica verde quando S2, S3 e S4 estao vermelhos, porque as
 ;     duas faixas atravessam a avenida;
 ;   - todo amarelo dura 4 s, medidos no estudo de campo.
-;==============================================================================
+
 tabela_estados:
     ;   dur  PORTD (S1, S2)     PORTB (S3, S4, P)       reserva
     .db 53,  S1_VM|S2_VM,       S3_VD|S4_VD|P_VM,       0   ; q1
