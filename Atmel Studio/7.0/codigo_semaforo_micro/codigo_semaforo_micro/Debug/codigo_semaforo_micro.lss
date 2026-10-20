@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm Mon Oct 19 09:25:21 2026
+AVRASM ver. 2.2.8  C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm Mon Oct 19 21:28:43 2026
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(10): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
@@ -1040,15 +1040,15 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
                                  
                                  ; ***** END OF FILE ******************************************************
                                  
-                                 ; Definição de constantes e equações de tempo: 
-                                 .equ F_CPU        = 16000000  ; Frequência do oscilador (16 MHz)
+                                 ; Definicao de constantes e equacoes de tempo: 
+                                 .equ F_CPU        = 16000000  ; Frequencia do oscilador (16 MHz)
                                  
-                                 ;  Chaves para o modo de simulação:
+                                 ;  Chaves para o modo de simulacao:
                                  ; 1 = depuracao no simulador do Microchip Studio.  
                                  ; 0 = versao final,usada  para o SimulIDE e para quando trabalharmos no protoboard.
                                  .equ SIMULACAO    = 0
-                                 .if SIMULACAO                ; so é compilado quando SIMULACAO = 1 
-                                 .else                        ; so é compilado quando SIMULACAO = 0
+                                 .if SIMULACAO                ; so e compilado quando SIMULACAO = 1 
+                                 .else                        ; so e compilado quando SIMULACAO = 0
                                  .equ BAUD         = 9600     ; velocidade da porta serial em bps
                                  .equ UBRR_VAL     = (F_CPU/16/BAUD)-1   ; Calculo do registrador de baud rate (= 103)                            
                                  ;   Conta do Timer1, que gera o segundo:
@@ -1058,7 +1058,7 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
                                  .equ OCR1A_VAL    = 62499 ; Comparador para o Timer1 (1 segundo)
                                  .endif
                                  
-                                 ;   Conta do Timer0, que varre os displays (5ms para a Multiplexação):
+                                 ;   Conta do Timer0, que varre os displays (5ms para a Multiplexacao):
                                  ;   prescaler 1024  ->  16.000.000 / 1024 = 15.625 contagens por segundo
                                  ;   queremos 5 ms = 1/200 s  ->  15.625 / 200 = 78 contagens
                                  ;   em CTC conta OCR0A + 1 vezes, logo temos OCR0A = 77.
@@ -1092,16 +1092,16 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
                                  .equ MASK_B = 0b00111111      ; os 6 bits de PORTB usados por LEDs
                                                                ; (bits 6 e 7 sao os pinos do cristal)
                                  
-                                 ;  Pinos que selecionam qual display está aceso
+                                 ;  Pinos que selecionam qual display esta aceso
                                  .equ SEL_DEZ = (1<<PC5)       ; A5 em nivel alto -> liga o display das dezenas
                                  .equ SEL_UNI = (1<<PC4)       ; A4 em nivel alto -> liga o das unidades
                                  
                                  ; REGISTRADORES 
                                  .def tmp    = r16   ; temporario de uso geral 
-                                 .def tmp2   = r17   ; segundo temporario, quando somente um não for suficiente
+                                 .def tmp2   = r17   ; segundo temporario, quando somente um nao for suficiente
                                  .def estado = r18   ; indice do estado atual na tabela (onde 0 = q1 e 6 = q7)
                                  .def seg    = r19   ; segundos que faltam para o estado atual terminar
-                                 .def ledsD  = r20   ; cópia dos bits de LED que vao para PORTD
+                                 .def ledsD  = r20   ; copia dos bits de LED que vao para PORTD
                                  .def ledsB  = r21   ; copia dos bits de LED que vao para PORTB
                                  .def zero   = r22   ; registrador mantido sempre em 0 (o AVR nao tem um fixo)
                                  .def dez    = r23   ; digito das dezenas do contador (0..9)
@@ -1124,13 +1124,13 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
                                  .org 0x0000                   ; endereco 0: para onde o chip vai ao ligar
 000000 c033                          rjmp reset                ; desvia para a inicializacao
                                  
-                                 .org OC1Aaddr                 ; Interrupção do Timer1 (Compare Match A)
+                                 .org OC1Aaddr                 ; Interrupcao do Timer1 (Compare Match A)
 000016 c059                          rjmp isr_timer1           ; -> nossa rotina do tique de 1 segundo
                                  
-                                 .org OC0Aaddr                 ; Interrupção do Timer0 (Compare Match A)
+                                 .org OC0Aaddr                 ; Interrupcao do Timer0 (Compare Match A)
 00001c c068                          rjmp isr_timer0           ; -> nossa rotina da varredura dos displays
                                  
-                                 .org UDREaddr                 ; Interrupção da USART (Registrador de dados vazio)
+                                 .org UDREaddr                 ; Interrupcao da USART (Registrador de dados vazio)
 000026 c070                          rjmp isr_udre             ; -> nossa rotina que envia o proximo caractere
                                  
                                  .org INT_VECTORS_SIZE         ; pula o resto da tabela de vetores; 
@@ -1155,7 +1155,7 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
                                                                
 000040 b968                          out  PORTC, zero          ; comeca com os dois displays apagados e o BCD em 0
                                  
-                                     ;  Inicializa o hardware da USART gravando o valor UBRR_VAL nos registradores UBRR0H/L e habilitando a transmissão (TXEN0) no formato 8N1. 
+                                     ;  Inicializa o hardware da USART gravando o valor UBRR_VAL nos registradores UBRR0H/L e habilitando a transmissao (TXEN0) no formato 8N1. 
 000041 e000                          ldi  tmp, high(UBRR_VAL)  ; byte alto do divisor de velocidade
 000042 9300 00c5                     sts  UBRR0H, tmp          ; (UBRR0H/L ficam fora do alcance de "out",
 000044 e607                          ldi  tmp, low(UBRR_VAL)   ;  por isso "sts", que aceita endereco de 16 bits)
@@ -1168,7 +1168,7 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
                                  
 00004d 9360 0102                     sts  tx_next,   zero		   ; fila comeca vazia (byte baixo)
 00004f 9360 0103                     sts  tx_next+1, zero		   ; byte alto
-000051 e204                          ldi  tmp,  low(str_banner*2)   ; endereco do banner na flash.  O "*2" é porque rotulos da flash sao contados em palavras de 16 bits, e "lpm" le bytes
+000051 e204                          ldi  tmp,  low(str_banner*2)   ; endereco do banner na flash.  O "*2" e porque rotulos da flash sao contados em palavras de 16 bits, e "lpm" le bytes
 000052 e012                          ldi  tmp2, high(str_banner*2)  
 000053 d086                          rcall agenda_string       ; entrega a string a serial
                                  
@@ -1189,8 +1189,8 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
                                  
                                      ; Timer1: relogio da maquina, 1 interrupcao por segundo
 000060 9360 0080                     sts  TCCR1A, zero         ; nenhuma saida PWM nos pinos; modo normal
-                                     ; OCR1A tem 16 bits e é escrito em dois acessos.  O hardware exige o byte
-                                     ; ALTO primeiro: ele fica num registrador temporario e so é gravado junto com o baixo, para o timer nunca ver meio valor.
+                                     ; OCR1A tem 16 bits e e escrito em dois acessos.  O hardware exige o byte
+                                     ; ALTO primeiro: ele fica num registrador temporario e so e gravado junto com o baixo, para o timer nunca ver meio valor.
 000062 ef04                          ldi  tmp, high(OCR1A_VAL) ; carrega o byte alto de 62499
 000063 9300 0089                     sts  OCR1AH, tmp          ; byte alto primeiro
 000065 e203                          ldi  tmp, low(OCR1A_VAL)  ; carrega o byte baixo
@@ -1200,32 +1200,29 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
 00006b e002                          ldi  tmp, (1<<OCIE1A)     ; habilita a interrupcao de comparacao A
 00006c 9300 006f                     sts  TIMSK1, tmp          ; a partir daqui o Timer1 interrompe a cada 1 s
                                  
-00006e 9478                          sei                       ; libera as interrupcoes globais, a partir daqui o programa passa a ser movido só por elas
-                                 
+00006e 9478                          sei                       ;liga o bit I do registrador de status e libera as interrupcoes globais, a partir daqui o programa passa a ser movido so por elas
                                  
                                  loop:
-00006f cfff                          rjmp loop                 ; fica girando aqui ate uma interrupcao ocorrer
+00006f cfff                          rjmp loop                 ; fica girando aqui ate uma interrupcao ocorrer, e um salto para si mesmo, nao fica lendo bit e voltando atras pra checar de novo
                                  
-                                 ; isr_timer1 - INTERRUPCAO DO TIMER1, uma vez por segundo
-                                 
-                                 
+                                 ; Rotina isr_timer1 - INTERRUPCAO DO TIMER1, uma vez por segundo
                                  isr_timer1:
-                                     ; A cada segundo, reduz a contagem regressiva. Ao alcançar 0, avança para o próximo estado da FSM,
-                                 	; atualiza os registradores de saída dos LEDs e agenda a nova mensagem serial. 
+                                     ; A cada segundo, reduz a contagem regressiva. Ao alcancar 0, avanca para o proximo estado da FSM,
+                                 	; atualiza os registradores de saida dos LEDs e agenda a nova mensagem serial. 
 000070 930f                          push tmp                  ; salva contexto
-000071 b70f                          in   tmp, SREG            ; le o registrador de status (flags Z, C, N...)
+000071 b70f                          in   tmp, SREG            ; le o registrador de status (guarda as flags Z, C, N...)
 000072 930f                          push tmp                  
 000073 931f                          push tmp2                 ; salva tmp2
 000074 93ef                          push ZL                   ; salva o ponteiro Z (usado por carrega_estado) nas suas duas metades
 000075 93ff                          push ZH                   
 000076 953a                          dec  seg                  ; Decrementa o tempo restante do estado
-000077 f429                          brne t1_atualiza          ; Se ainda não é zero, apenas atualiza o display
-000078 9523                          inc  estado               ; Se zerou, passa para o próximo estado
+000077 f429                          brne t1_atualiza          ; Se ainda nao eh zero, apenas atualiza o display
+000078 9523                          inc  estado               ; Se zerou, passa para o proximo estado
 000079 3027                          cpi  estado, NUM_ESTADOS  ; passou do ultimo estado (q7)? --> nao: segue com o indice novo e sim: o ciclo reinicia em q1
 00007a f008                          brlo t1_carrega           
-00007b 2722                          clr  estado               
+00007b 2722                          clr  estado				  ;  fecha o ciclo, fazendo o q7 voltar para o q1        
                                  t1_carrega:
-00007c d048                          rcall carrega_estado      ; Lê novos valores da Flash
+00007c d048                          rcall carrega_estado      ; Le novos valores da Flash
                                  t1_atualiza:
 00007d d076                          rcall separa_digitos      ; Converte "seg" para BCD (dezena/unidade)
                                  
@@ -1239,7 +1236,7 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
                                                                ; as interrupcoes
                                  
                                  ; isr_timer0 - INTERRUPCAO DO TIMER0, a cada 5 ms
-                                 ;  A cada 5 ms, alterna qual display está ligado.  
+                                 ;  A cada 5 ms, alterna qual display esta ligado.  
                                  isr_timer0:
 000085 930f                          push tmp                  ; salva tmp
 000086 b70f                          in   tmp, SREG            ; le os flags
@@ -1248,15 +1245,15 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
 000088 2399                          tst  mux                  ; Verifica se acendeu dezenas (0) ou unidades (1)
 000089 f429                          brne t0_unidades          
                                      
-00008a 2f07                          mov  tmp, dez             ; Pega o dígito da dezena
-00008b 6200                          ori  tmp, SEL_DEZ         ; Ativa o bit de seleção do display 1 (PC5)
-00008c b908                          out  PORTC, tmp           ; Envia BCD + Seleção de uma só vez
+00008a 2f07                          mov  tmp, dez             ; Pega o digito da dezena
+00008b 6200                          ori  tmp, SEL_DEZ         ; Ativa o bit de selecao do display 1 (PC5)
+00008c b908                          out  PORTC, tmp           ; Envia BCD + Selecao de uma so vez
 00008d e091                          ldi  mux, 1               
 00008e c004                          rjmp t0_sai               ; pula o trecho das unidades
                                  
                                  t0_unidades:
-00008f 2f08                          mov  tmp, uni             ; Pega o dígito da unidade
-000090 6100                          ori  tmp, SEL_UNI         ; Ativa o bit de seleção do display 2 (PC4)
+00008f 2f08                          mov  tmp, uni             ; Pega o digito da unidade
+000090 6100                          ori  tmp, SEL_UNI         ; Ativa o bit de selecao do display 2 (PC4)
 000091 b908                          out  PORTC, tmp           ; escrita unica: BCD + selecao
 000092 2799                          clr  mux                  ; proximo tique volta a ser das dezenas
                                  
@@ -1267,9 +1264,9 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
 000096 9518                          reti                      ; volta
                                  
                                  ; isr_udre - INTERRUPCAO DA USART, "registrador de transmissao vazio"
-                                 ; Sempre que o hardware envia um caractere e fica livre para o próximo, ele dispara a interrupção UDRE
-                                 ; A ISR pega o próximo caractere da string armazenada na Flash e o escreve no registrador UDR0
-                                 ; sem travar o processador com laços de espera.
+                                 ; Sempre que o hardware envia um caractere e fica livre para o proximo, ele dispara a interrupcao UDRE
+                                 ; A ISR pega o proximo caractere da string armazenada na Flash e o escreve no registrador UDR0
+                                 ; sem travar o processador com lacos de espera.
                                  isr_udre:
 000097 930f                          push tmp                  ; salva tmp
 000098 b70f                          in   tmp, SREG            ; le os flags
@@ -1280,7 +1277,7 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
 00009c 91e0 0100                     lds  ZL, tx_ptr           ; Z = endereco do proximo caractere
 00009e 91f0 0101                     lds  ZH, tx_ptr+1         ; ...byte alto do ponteiro
 0000a0 9105                          lpm  tmp, Z+              ; le o caractere da flash e ja avanca Z
-0000a1 2300                          tst  tmp                  ; o caractere é 0? 0 marca o fim da string
+0000a1 2300                          tst  tmp                  ; o caractere e 0? 0 marca o fim da string
 0000a2 f039                          breq udre_fim             
                                  
 0000a3 9300 00c6                     sts  UDR0, tmp            ; escreve no registrador de dados: o hardware transmite esse byte bit a bit
@@ -1329,7 +1326,6 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
 0000ca 0fe0                          add  ZL, tmp              ; soma o deslocamento ao byte baixo de Z
 0000cb 1ff6                          adc  ZH, zero             ; e propaga o "vai um" para o byte alto (adc soma o carry; por isso zero existe)
                                                               
-                                 
                                  
 0000cc 9135                          lpm  seg,   Z+            ; byte 1: duracao do estado, em segundos
 0000cd 9145                          lpm  ledsD, Z+            ; byte 2: bits dos LEDs de PORTD (S1 e S2)
@@ -1436,7 +1432,7 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
 00010a 002c                          .db  4,  S1_VM|S2_AM,       S3_VD|S4_VM|P_VM,       0   ; q7
                                  
                                  
-                                 ; ".dw" grava palavras de 16 bits; cada uma é o endereco (em bytes) de uma
+                                 ; ".dw" grava palavras de 16 bits; cada uma e o endereco (em bytes) de uma
                                  ; string.  A ordem tem de ser a mesma da tabela de estados.
                                  tab_strings:
 00010b 0272
@@ -1487,7 +1483,7 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
 000135 2f6f
 000136 4c41
 000137 0a0d
-C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(411): warning: .cseg .db misalignment - padding zero byte
+C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(407): warning: .cseg .db misalignment - padding zero byte
 000138 0000                          .db "Semaforos - Av. Alvaro Otacilio x Av. Prof. Sandoval Arroxelas - Maceio/AL", 13, 10, 0
                                  
 000139 3171
@@ -1529,7 +1525,7 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
 00015d 6c65
 00015e 6f68
 00015f 0a0d
-C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(413): warning: .cseg .db misalignment - padding zero byte
+C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(409): warning: .cseg .db misalignment - padding zero byte
 000160 0000                      str_e1: .db "q1 (53s): S1 - Vermelho; S2 - Vermelho; S3 - Verde; S4 - Verde; P - Vermelho", 13, 10, 0
 000161 3271
 000162 2820
@@ -1611,7 +1607,7 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
 0001ae 7265
 0001af 6564
 0001b0 0a0d
-C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(415): warning: .cseg .db misalignment - padding zero byte
+C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(411): warning: .cseg .db misalignment - padding zero byte
 0001b1 0000                      str_e3: .db "q3 (39s): S1 - Verde; S2 - Vermelho; S3 - Vermelho; S4 - Vermelho; P - Verde", 13, 10, 0
 0001b2 3471
 0001b3 2820
@@ -1733,7 +1729,7 @@ C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo
 000227 6c65
 000228 6f68
 000229 0a0d
-C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(418): warning: .cseg .db misalignment - padding zero byte
+C:\Users\thiag\OneDrive\Documentos\Atmel Studio\7.0\codigo_semaforo_micro\codigo_semaforo_micro\main.asm(414): warning: .cseg .db misalignment - padding zero byte
 00022a 0000                      str_e6: .db "q6 (23s): S1 - Vermelho; S2 - Verde; S3 - Verde; S4 - Vermelho; P - Vermelho", 13, 10, 0
 00022b 3771
 00022c 2820
